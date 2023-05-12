@@ -37,12 +37,15 @@ import com.wesign.wesign.ui.theme.WeSignTheme
 
 @Composable
 internal fun HomeRoute(
+    onAnalyzePressed: () -> Unit
 ) {
-    HomeScreen()
+    HomeScreen(onAnalyzePressed = onAnalyzePressed)
 }
 
 @Composable
-fun HomeScreen() {
+fun HomeScreen(
+    onAnalyzePressed: () -> Unit = {},
+) {
     Scaffold() { contentPadding ->
         Column(
             Modifier
@@ -63,7 +66,8 @@ fun HomeScreen() {
                 CardButton(
                     modifier = Modifier.weight(1f),
                     text = "Start Analyze",
-                    imageResId = R.drawable.ic_analyze
+                    imageResId = R.drawable.ic_analyze,
+                    onClick = onAnalyzePressed
                 )
                 Spacer(modifier = Modifier.width(20.dp))
                 CardButton(
