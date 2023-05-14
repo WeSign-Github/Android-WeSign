@@ -1,4 +1,4 @@
-package com.wesign.wesign
+package com.wesign.wesign.ui.profile
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable

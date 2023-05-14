@@ -21,6 +21,7 @@ import com.wesign.wesign.navigation.Screen
 import com.wesign.wesign.ui.analyze.AnalyzerRoute
 import com.wesign.wesign.ui.home.HomeRoute
 import com.wesign.wesign.ui.login.LoginRoute
+import com.wesign.wesign.ui.profile.ProfileRoute
 import com.wesign.wesign.ui.register.RegisterInformationRoute
 import com.wesign.wesign.ui.register.RegisterRoute
 import com.wesign.wesign.ui.theme.WeSignTheme
