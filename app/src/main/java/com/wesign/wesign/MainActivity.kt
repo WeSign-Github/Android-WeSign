@@ -80,9 +80,14 @@ class MainActivity : ComponentActivity() {
                         }
 
                         composable(Screen.Home.route) {
-                            HomeRoute(onAnalyzePressed = {
-                                navController.navigate(Screen.AnalyzerCamera.route)
-                            })
+                            HomeRoute(
+                                onAnalyzePressed = {
+                                    navController.navigate(Screen.AnalyzerCamera.route)
+                                },
+                                onProfilePressed = {
+                                    navController.navigate(Screen.Profile.route)
+                                },
+                            )
                         }
 
                         composable(Screen.AnalyzerCamera.route) {
@@ -97,10 +102,12 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
                         }
+
+                        composable(Screen.Profile.route) {
+                            ProfileRoute()
+                        }
                     }
                 }
-
-
             }
         }
     }

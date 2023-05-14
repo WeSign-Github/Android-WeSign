@@ -37,14 +37,16 @@ import com.wesign.wesign.ui.theme.WeSignTheme
 
 @Composable
 internal fun HomeRoute(
-    onAnalyzePressed: () -> Unit
+    onAnalyzePressed: () -> Unit,
+    onProfilePressed: () -> Unit,
 ) {
-    HomeScreen(onAnalyzePressed = onAnalyzePressed)
+    HomeScreen(onAnalyzePressed = onAnalyzePressed, onProfilePressed = onProfilePressed)
 }
 
 @Composable
 fun HomeScreen(
     onAnalyzePressed: () -> Unit = {},
+    onProfilePressed: () -> Unit = {},
 ) {
     Scaffold() { contentPadding ->
         Column(
@@ -54,7 +56,7 @@ fun HomeScreen(
                 .padding(horizontal = 25.dp),
         ) {
             Spacer(modifier = Modifier.height(15.dp))
-            HomeTopBar()
+            HomeTopBar(onProfilePressed)
             Text(
                 "Your best sign language assistant",
                 Modifier.padding(vertical = 35.dp),
@@ -120,7 +122,9 @@ fun CardButton(
 
 
 @Composable
-fun HomeTopBar() {
+fun HomeTopBar(
+    onProfilePressed: () -> Unit
+) {
     Box(
         Modifier
             .fillMaxWidth()
@@ -147,7 +151,7 @@ fun HomeTopBar() {
             }
             Spacer(Modifier.weight(1f))
             IconButton(
-                onClick = { },
+                onClick = onProfilePressed,
                 Modifier
                     .fillMaxHeight()
                     .aspectRatio(1f)
