@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -24,25 +25,37 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.wesign.wesign.ui.theme.WeSignTheme
 
 @Composable
-fun ProfileRoute() {
-
+fun ProfileRoute(
+    onNavigateUp: () -> Unit
+) {
+    ProfileScreen(
+        onNavigateUp = onNavigateUp
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen() {
+fun ProfileScreen(
+    onNavigateUp: () -> Unit = {},
+) {
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Profile") },
                 navigationIcon = {
-                    Image(Icons.Filled.ArrowBack, contentDescription = "Back")
+                    IconButton(onClick = onNavigateUp) {
+                        Image(Icons.Filled.ArrowBack, contentDescription = "Back")
+                    }
                 },
+                actions = {
+
+                }
             )
         }
     ) { contentPadding ->
@@ -72,46 +85,49 @@ fun ProfileScreen() {
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp, vertical = 45.dp),
             ) {
-                Row(
-                    Modifier
-                        .padding(vertical = 10.dp)
-                        .fillMaxWidth()
-                        .height(40.dp)
-                        .clickable {
+                ProfileMenuItem(
+                    imageVector = Icons.Filled.Settings,
+                    title = "Setting"
+                )
 
-                        },
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Image(
-                        Icons.Filled.Settings,
-                        contentDescription = "Setting",
-                        Modifier.aspectRatio(1f).padding(5.dp),
-                    )
-                    Spacer(Modifier.width(40.dp))
-                    Text("Setting", style = MaterialTheme.typography.bodyLarge)
-                }
                 Divider(Modifier.fillMaxWidth())
-                Row(
-                    Modifier
-                        .padding(vertical = 10.dp)
-                        .fillMaxWidth()
-                        .height(40.dp)
-                        .clickable {
 
-                        },
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Image(
-                        Icons.Filled.Settings,
-                        contentDescription = "Setting",
-                        Modifier.aspectRatio(1f),
-                    )
-                    Spacer(Modifier.width(40.dp))
-                    Text("Setting", style = MaterialTheme.typography.bodyLarge)
-                }
+                ProfileMenuItem(
+                    imageVector = Icons.Filled.Settings,
+                    title = "Setting"
+                )
+
             }
 
         }
+    }
+}
+
+@Composable
+fun ProfileMenuItem(
+    imageVector: ImageVector,
+    title: String,
+    onClick: () -> Unit = {},
+) {
+    Row(
+        Modifier
+            .padding(vertical = 10.dp)
+            .fillMaxWidth()
+            .height(40.dp)
+            .clickable {
+                onClick()
+            },
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Image(
+            imageVector,
+            contentDescription = title,
+            Modifier
+                .aspectRatio(1f)
+                .padding(5.dp),
+        )
+        Spacer(Modifier.width(40.dp))
+        Text(title, style = MaterialTheme.typography.bodyLarge)
     }
 }
 

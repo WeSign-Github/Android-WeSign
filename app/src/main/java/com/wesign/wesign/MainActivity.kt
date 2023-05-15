@@ -1,5 +1,6 @@
 package com.wesign.wesign
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -14,14 +15,15 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.wesign.wesign.navigation.Screen
+import com.wesign.wesign.ui.analyze.AnalyzerActivity
 import com.wesign.wesign.ui.analyze.AnalyzerRoute
 import com.wesign.wesign.ui.home.HomeRoute
 import com.wesign.wesign.ui.login.LoginRoute
-import com.wesign.wesign.ui.profile.ProfileRoute
 import com.wesign.wesign.ui.register.RegisterInformationRoute
 import com.wesign.wesign.ui.register.RegisterRoute
 import com.wesign.wesign.ui.theme.WeSignTheme
@@ -36,6 +38,7 @@ class MainActivity : ComponentActivity() {
                 val snackbarHostState = remember { SnackbarHostState() }
                 val scope = rememberCoroutineScope()
                 var homeAsDefault by rememberSaveable { mutableStateOf(false) }
+                val localContext = LocalContext.current
 
                 Scaffold(
                     snackbarHost = { SnackbarHost(snackbarHostState) }
@@ -105,7 +108,12 @@ class MainActivity : ComponentActivity() {
                         }
 
                         composable(Screen.Profile.route) {
-                            ProfileRoute()
+                            startActivity(Intent(applicationContext, AnalyzerActivity::class.java))
+//                            ProfileRoute(
+//                                onNavigateUp = {
+//                                    navController.navigateUp()
+//                                },
+//                            )
                         }
                     }
                 }

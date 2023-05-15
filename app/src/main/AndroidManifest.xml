@@ -3,8 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-feature android:name="android.hardware.camera.any" />
-    <uses-permission android:name="android.permission.CAMERA" />
 
+    <uses-permission android:name="android.permission.CAMERA" />
 
     <application
         android:allowBackup="true"
@@ -14,8 +14,14 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
+        android:taskAffinity=""
         android:theme="@style/Theme.WeSign"
         tools:targetApi="31">
+        <activity
+            android:name=".ui.analyze.AnalyzerActivity"
+            android:exported="false"
+            android:label="@string/title_activity_analyzer"
+            android:theme="@style/Theme.WeSign" />
         <activity
             android:name=".MainActivity"
             android:exported="true"
