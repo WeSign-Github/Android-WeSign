@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "141485145943",
+    "project_id": "wesign-dc26a",
+    "storage_bucket": "wesign-dc26a.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:141485145943:android:b41ba9f8b6dd7a9a1d0812",
+        "android_client_info": {
+          "package_name": "com.wesign.wesign"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "141485145943-tse921br8oickajagk3fgqefss9fhvb3.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.wesign.wesign",
+            "certificate_hash": "1cceec1dfa1a407d14918b31213864fed6a4cf6b"
+          }
+        },
+        {
+          "client_id": "141485145943-mlmsk48ar5o2vf7s0vbfur224dni6bfc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBeoIOg_bRnUj4kGCVlwM4WoECrvL26Vxs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "141485145943-htqe7dfvv0phplj47lhntrqe8eskiddr.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

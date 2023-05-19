@@ -1,8 +1,16 @@
 package com.wesign.wesign.ui.login
 
+import android.app.Activity.RESULT_OK
+import android.util.Log
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.IntentSenderRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -27,10 +35,12 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -38,19 +48,74 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.google.android.gms.auth.api.identity.BeginSignInResult
+import com.google.android.gms.common.api.ApiException
+import com.google.firebase.auth.GoogleAuthProvider
 import com.wesign.wesign.R
 import com.wesign.wesign.component.AuthTopbar
+import com.wesign.wesign.domain.Response
+import com.wesign.wesign.ui.login.component.OneTapSignIn
+import com.wesign.wesign.ui.login.component.SignInWithGoogle
 import com.wesign.wesign.ui.theme.LocalExtendedColorScheme
 import com.wesign.wesign.ui.theme.WeSignTheme
 
 @Composable
 internal fun LoginRoute(
     onRegisterPressed: () -> Unit,
-    onLoginPressed: () -> Unit
+    onLoginSuccess: () -> Unit
 ) {
-    val viewModel: LoginViewModel = viewModel()
-    val uiState by viewModel.uiState.collectAsState()
+    val viewModel: LoginViewModel = hiltViewModel()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    val _loginState by viewModel.loginState.collectAsStateWithLifecycle()
+
+    val context = LocalContext.current
+
+    val launcher =
+        rememberLauncherForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
+//            Log.d("LoginScreen", result.data?.dataString!!)
+            if (result.resultCode == RESULT_OK) {
+                try {
+                    val credentials =
+                        viewModel.oneTapClient.getSignInCredentialFromIntent(result.data)
+                    val googleIdToken = credentials.googleIdToken
+                    val googleCredentials = GoogleAuthProvider.getCredential(googleIdToken, null)
+                    Log.d("LoginScreen", "Called viewmodel")
+                    viewModel.signInWithGoogle(googleCredentials)
+                } catch (it: ApiException) {
+                    print(it)
+                }
+            }
+        }
+
+    fun launch(signInResult: BeginSignInResult) {
+        val intent = IntentSenderRequest.Builder(signInResult.pendingIntent.intentSender).build()
+        launcher.launch(intent)
+    }
+
+    LaunchedEffect(_loginState) {
+        when (val loginState = _loginState) {
+            is Response.Success -> {
+                viewModel.setLoading(false)
+                loginState.result?.let {
+                    onLoginSuccess()
+                }
+            }
+
+            is Response.Loading -> {
+                Log.d("LoginScreen", "Loading...")
+                viewModel.setLoading(true)
+            }
+
+            is Response.Error -> {
+                viewModel.setLoading(false)
+                Toast.makeText(context, loginState.exception?.message, Toast.LENGTH_SHORT).show()
+            }
+        }
+
+    }
 
     LoginScreen(
         uiState = uiState,
@@ -58,7 +123,23 @@ internal fun LoginRoute(
         onEmailChanged = viewModel::setEmail,
         onPasswordChanged = viewModel::setPassword,
         onTogglePassword = viewModel::togglePasswordVisible,
-        onLoginPressed = onLoginPressed,
+        onLoginPressed = viewModel::login,
+        onGoogleLoginPressed = viewModel::oneTapSignIn,
+    )
+
+    OneTapSignIn(
+        viewModel = viewModel,
+        launch = {
+            launch(it)
+        },
+    )
+
+    SignInWithGoogle(
+        viewModel = viewModel,
+        onSuccessLogin = {
+            Log.d("LoginScreen - SignInWithGoogle",it.toString())
+            onLoginSuccess()
+        },
     )
 }
 
@@ -69,7 +150,8 @@ fun LoginScreen(
     onEmailChanged: (String) -> Unit = {},
     onPasswordChanged: (String) -> Unit = {},
     onTogglePassword: () -> Unit = {},
-    onLoginPressed: () -> Unit
+    onLoginPressed: (String, String) -> Unit = { _, _ -> },
+    onGoogleLoginPressed: () -> Unit = {}
 ) {
 
     Scaffold() {
@@ -122,7 +204,9 @@ fun LoginScreen(
                 )
                 Spacer(modifier = Modifier.height(20.dp))
                 ElevatedButton(
-                    onClick = onLoginPressed,
+                    onClick = {
+                        onLoginPressed(uiState.email, uiState.password)
+                    },
                     modifier = Modifier
                         .padding(horizontal = 25.dp)
                         .fillMaxWidth(),
@@ -164,11 +248,20 @@ fun LoginScreen(
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                SignInGoogleButton()
+                SignInGoogleButton(onGoogleLoginPressed)
 
             }
 
             RegisterSection(onRegisterPressed)
+        }
+
+        if (uiState.isLoading) {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.8f))
+            ) {
+            }
         }
     }
 }
@@ -203,9 +296,13 @@ fun RegisterSection(
 }
 
 @Composable
-fun SignInGoogleButton() {
+fun SignInGoogleButton(
+    onGoogleLoginPressed: () -> Unit = {}
+) {
     ElevatedButton(
-        onClick = {},
+        onClick = {
+            onGoogleLoginPressed()
+        },
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 25.dp),
@@ -231,7 +328,7 @@ fun SignInGoogleButton() {
 @Composable
 fun LoginScreenPreview() {
     WeSignTheme() {
-        LoginScreen(uiState = LoginUiState(), onLoginPressed = {})
+        LoginScreen(uiState = LoginUiState())
     }
 }
 
@@ -244,7 +341,20 @@ fun LoginScreenPreviewWithText() {
                 email = "methafizh30@gmail.com",
                 password = "12345678"
             ),
-            onLoginPressed = {}
+        )
+    }
+}
+
+@Preview(showSystemUi = true)
+@Composable
+fun LoginScreenPreviewWithTextLoading() {
+    WeSignTheme() {
+        LoginScreen(
+            uiState = LoginUiState(
+                email = "methafizh30@gmail.com",
+                password = "12345678",
+                isLoading = true,
+            ),
         )
     }
 }

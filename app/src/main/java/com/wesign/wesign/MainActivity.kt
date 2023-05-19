@@ -27,9 +27,12 @@ import com.wesign.wesign.ui.login.LoginRoute
 import com.wesign.wesign.ui.register.RegisterInformationRoute
 import com.wesign.wesign.ui.register.RegisterRoute
 import com.wesign.wesign.ui.theme.WeSignTheme
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -53,7 +56,7 @@ class MainActivity : ComponentActivity() {
                                 onRegisterPressed = {
                                     navController.navigate(Screen.Register.route)
                                 },
-                                onLoginPressed = {
+                                onLoginSuccess = {
                                     homeAsDefault = true
                                     navController.navigate(Screen.Home.route) {
                                         popUpTo(navController.graph.id) {
