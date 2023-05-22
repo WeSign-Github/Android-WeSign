@@ -19,10 +19,11 @@ fun SignInWithGoogle(
 
     when (val signInWithGoogleResponse = _signInGoogleState) {
         is Response.Loading -> {
-
+            viewModel.setLoading(true)
         }
 
         is Response.Success -> signInWithGoogleResponse.result?.let { signedIn ->
+            viewModel.setLoading(false)
             Log.d("SignInWithGoogle",signedIn.toString())
             LaunchedEffect(signedIn) {
                 onSuccessLogin(signedIn)
@@ -30,6 +31,7 @@ fun SignInWithGoogle(
         }
 
         is Response.Error -> LaunchedEffect(Unit) {
+            viewModel.setLoading(false)
             print(signInWithGoogleResponse.exception)
         }
     }

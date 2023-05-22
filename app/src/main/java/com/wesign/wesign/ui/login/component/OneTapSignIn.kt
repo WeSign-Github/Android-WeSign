@@ -19,16 +19,18 @@ fun OneTapSignIn(
 
     when (val oneTapSignInResponse = _oneTapState) {
         is Response.Loading -> {
-
+            viewModel.setLoading(true)
         }
 
         is Response.Success -> oneTapSignInResponse.result?.let {
+            viewModel.setLoading(false)
             LaunchedEffect(it) {
                 launch(it)
             }
         }
 
         is Response.Error -> LaunchedEffect(Unit) {
+            viewModel.setLoading(false)
             Log.e("OneTapSignIn", "OneTapSignIn Error")
         }
     }

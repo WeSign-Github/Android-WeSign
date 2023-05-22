@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -25,6 +26,8 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -32,10 +35,12 @@ import com.wesign.wesign.ui.theme.WeSignTheme
 
 @Composable
 fun ProfileRoute(
-    onNavigateUp: () -> Unit
+    onNavigateUp: () -> Unit,
+    onLogoutPressed: () -> Unit
 ) {
     ProfileScreen(
-        onNavigateUp = onNavigateUp
+        onNavigateUp = onNavigateUp,
+        onLogoutPressed = onLogoutPressed
     )
 }
 
@@ -43,6 +48,7 @@ fun ProfileRoute(
 @Composable
 fun ProfileScreen(
     onNavigateUp: () -> Unit = {},
+    onLogoutPressed: () -> Unit = {}
 ) {
     Scaffold(
         topBar = {
@@ -87,14 +93,17 @@ fun ProfileScreen(
             ) {
                 ProfileMenuItem(
                     imageVector = Icons.Filled.Settings,
+                    color = Color.Black,
                     title = "Setting"
                 )
 
                 Divider(Modifier.fillMaxWidth())
 
                 ProfileMenuItem(
-                    imageVector = Icons.Filled.Settings,
-                    title = "Setting"
+                    imageVector = Icons.Filled.Logout,
+                    color = Color.Red,
+                    title = "Logout",
+                    onClick = onLogoutPressed
                 )
 
             }
@@ -106,6 +115,7 @@ fun ProfileScreen(
 @Composable
 fun ProfileMenuItem(
     imageVector: ImageVector,
+    color: Color,
     title: String,
     onClick: () -> Unit = {},
 ) {
@@ -113,7 +123,7 @@ fun ProfileMenuItem(
         Modifier
             .padding(vertical = 10.dp)
             .fillMaxWidth()
-            .height(40.dp)
+            .height(50.dp)
             .clickable {
                 onClick()
             },
@@ -125,9 +135,10 @@ fun ProfileMenuItem(
             Modifier
                 .aspectRatio(1f)
                 .padding(5.dp),
+            colorFilter = ColorFilter.tint(color)
         )
         Spacer(Modifier.width(40.dp))
-        Text(title, style = MaterialTheme.typography.bodyLarge)
+        Text(title, style = MaterialTheme.typography.bodyLarge, color = color)
     }
 }
 
