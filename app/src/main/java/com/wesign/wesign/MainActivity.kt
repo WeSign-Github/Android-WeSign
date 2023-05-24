@@ -26,6 +26,7 @@ import com.wesign.wesign.core.SessionManager
 import com.wesign.wesign.navigation.Screen
 import com.wesign.wesign.ui.analyze.AnalyzerRoute
 import com.wesign.wesign.ui.home.HomeRoute
+import com.wesign.wesign.ui.learning.LearningRoute
 import com.wesign.wesign.ui.login.LoginRoute
 import com.wesign.wesign.ui.profile.ProfileRoute
 import com.wesign.wesign.ui.register.RegisterInformationRoute
@@ -76,6 +77,7 @@ class MainActivity : ComponentActivity() {
                         scope.launch {
                             val token = currentFirbaseAuth.currentUser?.getIdToken(false)?.await()
                             token?.let { tokenResult ->
+                                Log.d("MainActivity", "Token ${tokenResult.token}")
                                 sessionManager.saveToken(tokenResult.token ?: "")
                             } ?: run {
                                 sessionManager.saveToken("")
@@ -147,6 +149,9 @@ class MainActivity : ComponentActivity() {
                                 onProfilePressed = {
                                     navController.navigate(Screen.Profile.route)
                                 },
+                                onLearningPressed = {
+                                    navController.navigate(Screen.Learning.route)
+                                }
                             )
                         }
 
@@ -178,6 +183,12 @@ class MainActivity : ComponentActivity() {
                                     }
                                 }
                             )
+                        }
+
+                        composable(Screen.Learning.route) {
+                            LearningRoute(onNavigateUp = {
+                                navController.navigateUp()
+                            })
                         }
                     }
                 }

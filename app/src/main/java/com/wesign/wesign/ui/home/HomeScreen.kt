@@ -38,14 +38,20 @@ import com.wesign.wesign.ui.theme.WeSignTheme
 @Composable
 internal fun HomeRoute(
     onAnalyzePressed: () -> Unit,
+    onLearningPressed: () -> Unit,
     onProfilePressed: () -> Unit,
 ) {
-    HomeScreen(onAnalyzePressed = onAnalyzePressed, onProfilePressed = onProfilePressed)
+    HomeScreen(
+        onAnalyzePressed = onAnalyzePressed,
+        onProfilePressed = onProfilePressed,
+        onLearningPressed = onLearningPressed
+    )
 }
 
 @Composable
 fun HomeScreen(
     onAnalyzePressed: () -> Unit = {},
+    onLearningPressed: () -> Unit = {},
     onProfilePressed: () -> Unit = {},
 ) {
     Scaffold() { contentPadding ->
@@ -75,7 +81,8 @@ fun HomeScreen(
                 CardButton(
                     modifier = Modifier.weight(1f),
                     text = "Start Learning",
-                    imageResId = R.drawable.ic_learning
+                    imageResId = R.drawable.ic_learning,
+                    onClick = onLearningPressed
                 )
             }
         }
@@ -85,7 +92,7 @@ fun HomeScreen(
 
 
 @Composable
-fun CardButton(
+private fun CardButton(
     modifier: Modifier,
     text: String,
     imageResId: Int,
@@ -122,7 +129,7 @@ fun CardButton(
 
 
 @Composable
-fun HomeTopBar(
+private fun HomeTopBar(
     onProfilePressed: () -> Unit
 ) {
     Box(
@@ -176,7 +183,7 @@ fun HomeTopBar(
 
 @Preview(showSystemUi = true)
 @Composable
-fun HomeScreenPreview() {
+private fun HomeScreenPreview() {
     WeSignTheme {
         HomeScreen()
     }

@@ -14,8 +14,10 @@ import com.wesign.wesign.core.SIGN_UP_REQUEST
 import com.wesign.wesign.core.SessionManager
 import com.wesign.wesign.core.TIMEOUT
 import com.wesign.wesign.data.FirebaseAuthRepositoryImpl
+import com.wesign.wesign.data.WeSignRepositoryImpl
 import com.wesign.wesign.data.remote.WeSignApiService
 import com.wesign.wesign.domain.FirebaseAuthRepository
+import com.wesign.wesign.domain.WeSignRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -84,6 +86,10 @@ class AppModule {
     @Provides
     fun provideWeSignApi(retrofit: Retrofit): WeSignApiService =
         retrofit.create(WeSignApiService::class.java)
+
+    @Provides
+    fun proviceWeSignRepository(weSignRepositoryImpl: WeSignRepositoryImpl): WeSignRepository = weSignRepositoryImpl
+
 
     @Provides
     fun provideOneTapClient(@ApplicationContext context: Context) =

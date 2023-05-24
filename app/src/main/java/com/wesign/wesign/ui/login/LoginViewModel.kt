@@ -7,7 +7,7 @@ import com.google.firebase.auth.AuthCredential
 import com.wesign.wesign.domain.FirebaseAuthRepository
 import com.wesign.wesign.domain.LoginResponse
 import com.wesign.wesign.domain.OneTapSignInResponse
-import com.wesign.wesign.domain.Response
+import com.wesign.wesign.domain.Resource
 import com.wesign.wesign.domain.SignInWithGoogleResponse
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,13 +27,13 @@ class LoginViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(LoginUiState())
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
 
-    private val _loginState = MutableStateFlow<LoginResponse>(Response.Success(null))
+    private val _loginState = MutableStateFlow<LoginResponse>(Resource.Success(null))
     val loginState: StateFlow<LoginResponse> = _loginState.asStateFlow()
 
-    private val _oneTapState = MutableStateFlow<OneTapSignInResponse>(Response.Success(null))
+    private val _oneTapState = MutableStateFlow<OneTapSignInResponse>(Resource.Success(null))
     val oneTapState: StateFlow<OneTapSignInResponse> = _oneTapState.asStateFlow()
 
-    private val _signInWithGoogleState = MutableStateFlow<SignInWithGoogleResponse>(Response.Success(null))
+    private val _signInWithGoogleState = MutableStateFlow<SignInWithGoogleResponse>(Resource.Success(null))
     val signInWithGoogleState: StateFlow<SignInWithGoogleResponse> = _signInWithGoogleState.asStateFlow()
 
 

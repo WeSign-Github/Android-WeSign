@@ -55,7 +55,7 @@ import com.google.android.gms.common.api.ApiException
 import com.google.firebase.auth.GoogleAuthProvider
 import com.wesign.wesign.R
 import com.wesign.wesign.component.AuthTopbar
-import com.wesign.wesign.domain.Response
+import com.wesign.wesign.domain.Resource
 import com.wesign.wesign.ui.login.component.OneTapSignIn
 import com.wesign.wesign.ui.login.component.SignInWithGoogle
 import com.wesign.wesign.ui.theme.LocalExtendedColorScheme
@@ -97,19 +97,19 @@ internal fun LoginRoute(
 
     LaunchedEffect(_loginState) {
         when (val loginState = _loginState) {
-            is Response.Success -> {
+            is Resource.Success -> {
                 viewModel.setLoading(false)
                 loginState.result?.let {
                     onLoginSuccess()
                 }
             }
 
-            is Response.Loading -> {
+            is Resource.Loading -> {
                 Log.d("LoginScreen", "Loading...")
                 viewModel.setLoading(true)
             }
 
-            is Response.Error -> {
+            is Resource.Error -> {
                 viewModel.setLoading(false)
                 Toast.makeText(context, loginState.exception?.message, Toast.LENGTH_SHORT).show()
             }

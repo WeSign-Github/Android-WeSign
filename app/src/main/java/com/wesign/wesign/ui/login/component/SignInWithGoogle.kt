@@ -7,7 +7,7 @@ import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.firebase.auth.FirebaseUser
-import com.wesign.wesign.domain.Response
+import com.wesign.wesign.domain.Resource
 import com.wesign.wesign.ui.login.LoginViewModel
 
 @Composable
@@ -18,11 +18,11 @@ fun SignInWithGoogle(
     val _signInGoogleState by viewModel.signInWithGoogleState.collectAsStateWithLifecycle()
 
     when (val signInWithGoogleResponse = _signInGoogleState) {
-        is Response.Loading -> {
+        is Resource.Loading -> {
             viewModel.setLoading(true)
         }
 
-        is Response.Success -> signInWithGoogleResponse.result?.let { signedIn ->
+        is Resource.Success -> signInWithGoogleResponse.result?.let { signedIn ->
             viewModel.setLoading(false)
             Log.d("SignInWithGoogle",signedIn.toString())
             LaunchedEffect(signedIn) {
@@ -30,7 +30,7 @@ fun SignInWithGoogle(
             }
         }
 
-        is Response.Error -> LaunchedEffect(Unit) {
+        is Resource.Error -> LaunchedEffect(Unit) {
             viewModel.setLoading(false)
             print(signInWithGoogleResponse.exception)
         }

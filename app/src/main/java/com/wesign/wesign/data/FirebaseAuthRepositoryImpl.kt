@@ -11,7 +11,7 @@ import com.wesign.wesign.core.SIGN_UP_REQUEST
 import com.wesign.wesign.domain.FirebaseAuthRepository
 import com.wesign.wesign.domain.LoginResponse
 import com.wesign.wesign.domain.OneTapSignInResponse
-import com.wesign.wesign.domain.Response
+import com.wesign.wesign.domain.Resource
 import com.wesign.wesign.domain.SignInWithGoogleResponse
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
@@ -35,61 +35,61 @@ class FirebaseAuthRepositoryImpl @Inject constructor(
     override val currentUser: FirebaseUser? get() = firebaseAuth.currentUser
 
     override fun login(email: String, password: String): Flow<LoginResponse> = flow {
-        emit(Response.Loading)
+        emit(Resource.Loading)
         try {
             val result = firebaseAuth.signInWithEmailAndPassword(email, password).await()
             result.user?.let {
-                emit(Response.Success(it))
+                emit(Resource.Success(it))
             } ?: kotlin.run {
                 throw Exception("User is not available")
             }
         } catch (ex: Exception) {
             ex.printStackTrace()
-            emit(Response.Error(ex))
+            emit(Resource.Error(ex))
         }
     }
 
     override suspend fun signInWithGoogle(googleCredential: AuthCredential): Flow<SignInWithGoogleResponse> =
         flow {
-            emit(Response.Loading)
+            emit(Resource.Loading)
             try {
                 val authResult = firebaseAuth.signInWithCredential(googleCredential).await()
                 val isNewUser = authResult.additionalUserInfo?.isNewUser ?: false
                 if (isNewUser) {
                     // TODO add detail user to server
                 }
-                emit(Response.Success(authResult.user))
+                emit(Resource.Success(authResult.user))
             } catch (e: Exception) {
-                emit(Response.Error(e))
+                emit(Resource.Error(e))
             }
         }
 
-    override suspend fun register(email: String, password: String): Response<FirebaseUser> {
+    override suspend fun register(email: String, password: String): Resource<FirebaseUser> {
         return try {
             val result = firebaseAuth.createUserWithEmailAndPassword(email, password).await()
             result.user?.let {
-                Response.Success(it)
+                Resource.Success(it)
             } ?: kotlin.run {
                 throw Exception("User is not available")
             }
         } catch (ex: Exception) {
             ex.printStackTrace()
-            Response.Error(ex)
+            Resource.Error(ex)
         }
     }
 
     override suspend fun oneTapSignInWithGoogle(): Flow<OneTapSignInResponse> =
         flow {
-            emit(Response.Loading)
+            emit(Resource.Loading)
             try {
                 val signInResult = oneTapClient.beginSignIn(signInRequest).await()
-                emit(Response.Success(signInResult))
+                emit(Resource.Success(signInResult))
             } catch (e: Exception) {
                 try {
                     val signUpResult = oneTapClient.beginSignIn(signUpRequest).await()
-                    emit(Response.Success(signUpResult))
+                    emit(Resource.Success(signUpResult))
                 } catch (e: Exception) {
-                    emit(Response.Error(e))
+                    emit(Resource.Error(e))
                 }
             }
         }
