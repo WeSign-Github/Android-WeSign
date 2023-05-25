@@ -1,4 +1,4 @@
-package com.wesign.wesign.ui.learning
+package com.wesign.wesign.ui.courseDetail
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -15,31 +15,20 @@ import java.net.SocketTimeoutException
 import javax.inject.Inject
 
 @HiltViewModel
-class LearningViewModel @Inject constructor(
+class CourseDetailViewModel @Inject constructor(
     private val weSignRepository: WeSignRepository
 ) : ViewModel() {
 
 
-    private val _uiState = MutableStateFlow(LearningState())
-    val uiState: StateFlow<LearningState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(CourseDetailState())
+    val uiState: StateFlow<CourseDetailState> = _uiState.asStateFlow()
 
-    init {
-        getCourses()
-    }
-
-    fun tryAgain() {
-        getCourses()
-        _uiState.update {
-            it.copy(isTryAgain = false)
-        }
-    }
-
-    fun getCourses() {
-        weSignRepository.getCourses().onEach { result ->
+    fun getCourse(id: Int) {
+        weSignRepository.getDetailCourses(id).onEach { result ->
             when (result) {
                 is Resource.Success -> {
                     _uiState.update {
-                        it.copy(isLoading = false, courseList = result.result!!.data)
+                        it.copy(isLoading = false, course = result.result!!.data)
                     }
                 }
 
@@ -47,7 +36,7 @@ class LearningViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(isLoading = false)
                     }
-                    if(result.exception is SocketTimeoutException) {
+                    if (result.exception is SocketTimeoutException) {
                         _uiState.update {
                             it.copy(isTryAgain = true)
                         }

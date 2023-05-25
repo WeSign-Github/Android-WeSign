@@ -17,14 +17,17 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuth.IdTokenListener
 import com.wesign.wesign.core.SessionManager
 import com.wesign.wesign.navigation.Screen
 import com.wesign.wesign.ui.analyze.AnalyzerRoute
+import com.wesign.wesign.ui.courseDetail.CourseDetailRoute
 import com.wesign.wesign.ui.home.HomeRoute
 import com.wesign.wesign.ui.learning.LearningRoute
 import com.wesign.wesign.ui.login.LoginRoute
@@ -186,9 +189,32 @@ class MainActivity : ComponentActivity() {
                         }
 
                         composable(Screen.Learning.route) {
-                            LearningRoute(onNavigateUp = {
-                                navController.navigateUp()
-                            })
+                            LearningRoute(
+                                onNavigateUp = {
+                                    navController.navigateUp()
+                                },
+                                onItemClicked = { id ->
+                                    navController.navigate(Screen.CourseDetail.createRoute(id))
+                                }
+                            )
+                        }
+
+                        composable(
+                            Screen.CourseDetail.route,
+                            arguments = listOf(
+                                navArgument("id") {
+                                    type = NavType.IntType
+                                    defaultValue = -1
+                                    nullable = false
+                                }
+                            ),
+                        ) {
+                            CourseDetailRoute(
+                                onNavigateBack = {
+                                    navController.navigateUp()
+                                },
+                                idCourse = it.arguments?.getInt("id") ?: -1
+                            )
                         }
                     }
                 }
