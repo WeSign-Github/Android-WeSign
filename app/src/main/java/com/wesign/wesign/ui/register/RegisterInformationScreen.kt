@@ -1,6 +1,6 @@
 package com.wesign.wesign.ui.register
 
-import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -15,43 +15,76 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.ViewModelStoreOwner
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.wesign.wesign.component.AuthTopbar
+import com.wesign.wesign.component.LoadingView
+import com.wesign.wesign.domain.Resource
 import com.wesign.wesign.ui.theme.LocalExtendedColorScheme
 import com.wesign.wesign.ui.theme.WeSignTheme
 
 @Composable
 internal fun RegisterInformationRoute(
-    viewModelStoreOwner: ViewModelStoreOwner? = null,
+    viewModel: RegisterInformationViewModel = hiltViewModel(),
     onNavigateUp: () -> Unit,
+    onRegisterSuccess: () -> Unit
+
 ) {
-    val viewModel: RegisterViewModel = viewModelStoreOwner?.let {
-        Log.d("RegisterScreen", "with viewModelStoreOwner")
-        viewModel(viewModelStoreOwner)
-    } ?: run {
-        viewModel()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    val registerState by viewModel.registerState.collectAsStateWithLifecycle()
+
+    val context = LocalContext.current
+
+    LaunchedEffect(registerState) {
+        when (val state = registerState) {
+            is Resource.Success -> {
+                viewModel.setLoading(false)
+                state.result?.let {
+                    onRegisterSuccess()
+                }
+
+            }
+
+            is Resource.Error -> {
+                viewModel.setLoading(false)
+                Toast.makeText(context, state.exception?.message, Toast.LENGTH_LONG).show()
+            }
+
+            is Resource.Loading -> {
+                viewModel.setLoading(true)
+            }
+        }
     }
 
-    RegisterInformationScreen(onNavigateUp = onNavigateUp)
+    RegisterInformationScreen(
+        uiState = uiState,
+        onNavigateUp = onNavigateUp,
+        onRegister = viewModel::registerDetailInformation,
+        onFirstNameChanged = viewModel::changeFirstName,
+        onLastNameChanged = viewModel::changeLastName,
+        onDisplayNameChanged = viewModel::changeDisplayName
+    )
+
+    if (uiState.isLoading) LoadingView()
 }
 
 @Composable
 fun RegisterInformationScreen(
-    onRegister: () -> Unit = {},
+    uiState: RegisterInformationState = RegisterInformationState(),
+    onFirstNameChanged: (String) -> Unit = {},
+    onLastNameChanged: (String) -> Unit = {},
+    onDisplayNameChanged: (String) -> Unit = {},
+    onRegister: (String, String, String) -> Unit = { _, _, _ -> },
     onNavigateUp: () -> Unit = {}
 ) {
-    var firstName by rememberSaveable { mutableStateOf("") }
-    var lastName by rememberSaveable { mutableStateOf("") }
-    var displayName by rememberSaveable { mutableStateOf("") }
 
     Scaffold() {
         Column(
@@ -76,41 +109,35 @@ fun RegisterInformationScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 OutlinedTextField(
-                    value = firstName,
+                    value = uiState.firstName,
                     modifier = Modifier
                         .fillMaxWidth(),
                     singleLine = true,
-                    onValueChange = { value ->
-                        firstName = value
-                    },
+                    onValueChange = onFirstNameChanged,
                     label = { Text("First Name") }
                 )
                 Spacer(modifier = Modifier.height(20.dp))
                 OutlinedTextField(
-                    value = lastName,
+                    value = uiState.lastName,
                     modifier = Modifier
                         .fillMaxWidth(),
                     singleLine = true,
-                    onValueChange = { value ->
-                        lastName = value
-                    },
+                    onValueChange = onLastNameChanged,
                     label = { Text("Last Name") }
                 )
                 Spacer(modifier = Modifier.height(20.dp))
                 OutlinedTextField(
-                    value = displayName,
+                    value = uiState.displayName,
                     modifier = Modifier
                         .fillMaxWidth(),
                     singleLine = true,
-                    onValueChange = { value ->
-                        displayName = value
-                    },
+                    onValueChange = onDisplayNameChanged,
                     label = { Text("Display Name") }
                 )
                 Spacer(modifier = Modifier.height(40.dp))
                 ElevatedButton(
                     onClick = {
-                        onRegister()
+                        onRegister(uiState.firstName, uiState.lastName, uiState.displayName)
                     },
                     modifier = Modifier
                         .padding(horizontal = 25.dp)

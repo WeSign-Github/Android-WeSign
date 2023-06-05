@@ -9,6 +9,7 @@ import com.google.firebase.auth.FirebaseUser
 import com.wesign.wesign.core.SIGN_IN_REQUEST
 import com.wesign.wesign.core.SIGN_UP_REQUEST
 import com.wesign.wesign.domain.FirebaseAuthRepository
+import com.wesign.wesign.domain.FirebaseRegisterResponse
 import com.wesign.wesign.domain.LoginResponse
 import com.wesign.wesign.domain.OneTapSignInResponse
 import com.wesign.wesign.domain.Resource
@@ -64,17 +65,14 @@ class FirebaseAuthRepositoryImpl @Inject constructor(
             }
         }
 
-    override suspend fun register(email: String, password: String): Resource<FirebaseUser> {
-        return try {
-            val result = firebaseAuth.createUserWithEmailAndPassword(email, password).await()
-            result.user?.let {
-                Resource.Success(it)
-            } ?: kotlin.run {
-                throw Exception("User is not available")
-            }
+    override fun register(email: String, password: String): Flow<FirebaseRegisterResponse> = flow {
+        emit(Resource.Loading)
+        try {
+            firebaseAuth.createUserWithEmailAndPassword(email, password).await()
+            emit(Resource.Success(firebaseAuth.currentUser))
         } catch (ex: Exception) {
             ex.printStackTrace()
-            Resource.Error(ex)
+            emit(Resource.Error(ex))
         }
     }
 

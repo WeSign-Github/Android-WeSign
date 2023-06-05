@@ -1,7 +1,10 @@
 package com.wesign.wesign.ui.register
 
 import android.util.Log
+import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,39 +24,42 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.ViewModelStoreOwner
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.wesign.wesign.component.AuthTopbar
 import com.wesign.wesign.ui.theme.LocalExtendedColorScheme
 import com.wesign.wesign.ui.theme.WeSignTheme
 
 @Composable
 internal fun RegisterRoute(
-    viewModelStoreOwner: ViewModelStoreOwner? = null,
+    viewModel: RegisterViewModel = hiltViewModel(),
     onNavigateUp: () -> Unit,
     onNext: () -> Unit,
 ) {
-    val viewModel: RegisterViewModel = viewModelStoreOwner?.let {
-        Log.d("RegisterScreen","with viewModelStoreOwner")
-        viewModel(viewModelStoreOwner)
-    } ?: run {
-        viewModel()
-    }
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
+    LaunchedEffect(uiState.firebaseUser) {
+        uiState.firebaseUser?.let {
+            Log.d("Register", it.toString())
+            onNext()
+        }
+    }
+
     RegisterScreen(
         uiState = uiState,
-        onNext = onNext,
+        onNextPressed = viewModel::register,
         onNavigateUp = onNavigateUp,
         onEmailChanged = viewModel::setEmail,
         onPasswordChanged = viewModel::setPassword,
@@ -61,12 +67,22 @@ internal fun RegisterRoute(
         onPasswordToggle = viewModel::togglePassword,
         onRePasswordToggle = viewModel::toggleRePassword,
     )
+
+    if (uiState.isLoading) {
+        Box(
+            Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.8f))
+        ) {
+        }
+    }
+
 }
 
 @Composable
 fun RegisterScreen(
     uiState: RegisterState,
-    onNext: () -> Unit = {},
+    onNextPressed: (String, String) -> Unit = { _, _ -> },
     onNavigateUp: () -> Unit = {},
     onEmailChanged: (String) -> Unit = {},
     onPasswordChanged: (String) -> Unit = {},
@@ -75,6 +91,7 @@ fun RegisterScreen(
     onRePasswordToggle: () -> Unit = {},
 ) {
 
+    val context = LocalContext.current
 
     Scaffold() {
         Column(
@@ -152,7 +169,15 @@ fun RegisterScreen(
                 Spacer(modifier = Modifier.height(30.dp))
                 ElevatedButton(
                     onClick = {
-                        onNext()
+                        if (uiState.email.isEmpty() || uiState.password.isEmpty()) {
+                            Toast.makeText(
+                                context,
+                                "Email or Password cannot be Empty",
+                                Toast.LENGTH_LONG
+                            ).show()
+                            return@ElevatedButton
+                        }
+                        onNextPressed(uiState.email, uiState.password)
                     },
                     modifier = Modifier
                         .padding(horizontal = 25.dp)

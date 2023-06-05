@@ -25,6 +25,7 @@ import androidx.navigation.navArgument
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuth.IdTokenListener
 import com.wesign.wesign.core.SessionManager
+import com.wesign.wesign.domain.WeSignRepository
 import com.wesign.wesign.navigation.Screen
 import com.wesign.wesign.ui.analyze.AnalyzerRoute
 import com.wesign.wesign.ui.courseDetail.CourseDetailRoute
@@ -50,6 +51,9 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var sessionManager: SessionManager
+
+    @Inject
+    lateinit var weSignRepository: WeSignRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -101,6 +105,8 @@ class MainActivity : ComponentActivity() {
                     homeAsDefault = !sessionManager.getToken().first().isNullOrEmpty()
                 }
 
+
+
                 Scaffold(
                     snackbarHost = { SnackbarHost(snackbarHostState) }
                 ) { contentPadding ->
@@ -132,16 +138,25 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onNext = {
                                     navController.navigate(Screen.RegisterInformation.route) {
-
+                                        popUpTo(navController.graph.id) {
+                                            inclusive = true
+                                        }
                                     }
                                 }
                             )
                         }
 
                         composable(Screen.RegisterInformation.route) {
-                            RegisterInformationRoute {
-                                navController.navigateUp()
-                            }
+                            RegisterInformationRoute(
+                                onNavigateUp = navController::navigateUp,
+                                onRegisterSuccess = {
+                                    navController.navigate(navController.graph.startDestinationRoute!!) {
+                                        popUpTo(navController.graph.id) {
+                                            inclusive = true
+                                        }
+                                    }
+                                }
+                            )
                         }
 
                         composable(Screen.Home.route) {
@@ -183,6 +198,10 @@ class MainActivity : ComponentActivity() {
                                         popUpTo(navController.graph.id) {
                                             inclusive = true
                                         }
+                                    }
+                                },
+                                onUserEmpty = {
+                                    navController.navigate(Screen.RegisterInformation.route) {
                                     }
                                 }
                             )

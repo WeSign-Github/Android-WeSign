@@ -24,6 +24,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -31,24 +33,43 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.google.accompanist.placeholder.PlaceholderHighlight
+import com.google.accompanist.placeholder.material.placeholder
+import com.google.accompanist.placeholder.material.shimmer
 import com.wesign.wesign.ui.theme.WeSignTheme
 
 @Composable
 fun ProfileRoute(
+    viewModel: ProfileViewModel = hiltViewModel(),
     onNavigateUp: () -> Unit,
-    onLogoutPressed: () -> Unit
+    onLogoutPressed: () -> Unit,
+    onUserEmpty: () -> Unit,
 ) {
+
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(uiState) {
+        if (uiState.isUserInfoEmpty) {
+            onUserEmpty()
+        }
+    }
+
     ProfileScreen(
         onNavigateUp = onNavigateUp,
-        onLogoutPressed = onLogoutPressed
+        onLogoutPressed = onLogoutPressed,
+        uiState = uiState
     )
+
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
     onNavigateUp: () -> Unit = {},
-    onLogoutPressed: () -> Unit = {}
+    onLogoutPressed: () -> Unit = {},
+    uiState: ProfileState = ProfileState(),
 ) {
     Scaffold(
         topBar = {
@@ -66,7 +87,6 @@ fun ProfileScreen(
         }
     ) { contentPadding ->
         Column(Modifier.padding(contentPadding)) {
-
             Column(
                 Modifier
                     .weight(1f)
@@ -79,10 +99,28 @@ fun ProfileScreen(
                     contentDescription = "Profile Image",
                     Modifier
                         .weight(1f)
-                        .aspectRatio(1f),
+                        .aspectRatio(1f)
+                        .placeholder(
+                            visible = uiState.isLoading,
+                            highlight = PlaceholderHighlight.shimmer(),
+                        ),
                 )
-                Text("Hafizh Sumantri", style = MaterialTheme.typography.headlineMedium)
-                Text("(HafizhS)", style = MaterialTheme.typography.bodyLarge)
+                Text(
+                    "${uiState.user?.firstName} ${uiState.user?.lastName}",
+                    style = MaterialTheme.typography.headlineMedium,
+                    modifier = Modifier.placeholder(
+                        visible = uiState.isLoading,
+                        highlight = PlaceholderHighlight.shimmer(),
+                    )
+                )
+                Text(
+                    "(${uiState.user?.displayName})",
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.placeholder(
+                        visible = uiState.isLoading,
+                        highlight = PlaceholderHighlight.shimmer(),
+                    )
+                )
             }
 
             Column(

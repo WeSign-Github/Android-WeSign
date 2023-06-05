@@ -12,6 +12,8 @@ data class RegisterRequest(
     var firstName: String,
     @SerializedName("last_name")
     var lastName: String,
+    @SerializedName("display_name")
+    var displayName: String,
     @SerializedName("email")
     var email: String,
     @SerializedName("avatar")

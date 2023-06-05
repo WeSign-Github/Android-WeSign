@@ -1,6 +1,7 @@
 package com.wesign.wesign.ui.analyze
 
 import android.Manifest
+import android.graphics.Bitmap
 import android.graphics.RectF
 import android.util.Log
 import androidx.camera.core.CameraSelector
@@ -8,6 +9,7 @@ import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888
 import androidx.camera.core.resolutionselector.AspectRatioStrategy
 import androidx.camera.core.resolutionselector.ResolutionSelector
+import androidx.camera.core.resolutionselector.ResolutionSelector.HIGH_RESOLUTION_FLAG_OFF
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.Image
@@ -51,9 +53,9 @@ import com.google.accompanist.permissions.PermissionsRequired
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.mediapipe.tasks.vision.core.RunningMode
 import com.google.mediapipe.tasks.vision.handlandmarker.HandLandmarkerResult
-import com.wesign.wesign.component.HandOverlayView
 import com.wesign.wesign.ui.theme.WeSignTheme
 import com.wesign.wesign.utils.HandLandmarkerHelper
+import com.wesign.wesign.utils.ObjectDetectorHelper
 import kotlinx.coroutines.launch
 import org.tensorflow.lite.task.vision.detector.Detection
 import java.util.concurrent.ExecutorService
@@ -128,12 +130,12 @@ fun AnalyzerScreen(
                     onUiStateUpdate(newState)
                 }
             )
-            HandOverlayView(
-                modifier = Modifier.matchParentSize(),
-                handLandmarkerResults = analyzerState.handLandmarkerResult,
-                imageHeight = analyzerState.landmarkImageSize.height,
-                imageWidth = analyzerState.landmarkImageSize.width
-            )
+//            HandOverlayView(
+//                modifier = Modifier.matchParentSize(),
+//                handLandmarkerResults = analyzerState.handLandmarkerResult,
+//                imageHeight = analyzerState.landmarkImageSize.height,
+//                imageWidth = analyzerState.landmarkImageSize.width
+//            )
 //            if (detection.categories.size != 0) {
 //                Text(
 //                    "${detection.categories[0].score} ${detection.categories[0].label}",
@@ -175,34 +177,35 @@ private fun CameraView(
 
     val scope = rememberCoroutineScope()
 
-//    val detectorListener = remember {
-//        object : ObjectDetectorHelper.DetectorListener {
-//            override fun onError(error: String) {
-//                Log.d("Analyzer", "Error: $error")
-//            }
-//
-//            override fun onResults(
-//                results: MutableList<Detection>?,
-//                inferenceTime: Long,
-//                imageHeight: Int,
-//                imageWidth: Int
-//            ) {
-//                scope.launch {
-//                    if (results != null) {
-//                        for (result in results) {
-//                            onAnalyze(result)
-//                            Log.d("Analyzer", result.categories[0].toString())
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//    }
+    val detectorListener = remember {
+        object : ObjectDetectorHelper.DetectorListener {
+            override fun onError(error: String) {
+                Log.d("Analyzer", "Error: $error")
+            }
+
+            override fun onResults(
+                results: MutableList<Detection>?,
+                inferenceTime: Long,
+                imageHeight: Int,
+                imageWidth: Int
+            ) {
+                scope.launch {
+                    Log.d("Analyzer", "inferenceTime: $inferenceTime")
+                    if (results != null) {
+                        for (result in results) {
+                            onAnalyze(result)
+                            Log.d("Analyzer", result.categories[0].toString())
+                        }
+                    }
+                }
+            }
+        }
+    }
 
 
-//    val objectDetectorHelper: ObjectDetectorHelper = remember {
-//        ObjectDetectorHelper(context = context, objectDetectorListener = detectorListener)
-//    }
+    val objectDetectorHelper: ObjectDetectorHelper = remember {
+        ObjectDetectorHelper(context = context, objectDetectorListener = detectorListener)
+    }
 
     val handLandmarkerListener = remember {
         object : HandLandmarkerHelper.LandmarkerListener {
@@ -211,36 +214,36 @@ private fun CameraView(
             }
 
             override fun onResults(resultBundle: HandLandmarkerHelper.ResultBundle) {
-                scope.launch() {
-                    onHandLanmark(
-                        resultBundle.results.first(),
-                        resultBundle.inputImageHeight,
-                        resultBundle.inputImageWidth,
-                        RunningMode.LIVE_STREAM
-                    )
-                }
+                onHandLanmark(
+                    resultBundle.results.first(),
+                    resultBundle.inputImageHeight,
+                    resultBundle.inputImageWidth,
+                    RunningMode.LIVE_STREAM
+                )
             }
 
         }
     }
 
-    val handDetectorHelper: HandLandmarkerHelper by lazy {
-        HandLandmarkerHelper(
-            context = context,
-            runningMode = RunningMode.LIVE_STREAM,
-            minHandDetectionConfidence = HandLandmarkerHelper.DEFAULT_HAND_DETECTION_CONFIDENCE,
-            minHandTrackingConfidence = HandLandmarkerHelper.DEFAULT_HAND_TRACKING_CONFIDENCE,
-            minHandPresenceConfidence = HandLandmarkerHelper.DEFAULT_HAND_PRESENCE_CONFIDENCE,
-            maxNumHands = 2,
-            handLandmarkerHelperListener = handLandmarkerListener,
-            currentDelegate = HandLandmarkerHelper.DELEGATE_CPU
-        )
-    }
+    var handDetectorHelper: HandLandmarkerHelper? = null
 
     LaunchedEffect(cameraLens) {
         backgroundExecutor.execute {
-            handDetectorHelper.clearHandLandmarker()
-            handDetectorHelper.setupHandLandmarker()
+            handDetectorHelper = HandLandmarkerHelper(
+                context = context,
+                runningMode = RunningMode.LIVE_STREAM,
+                minHandDetectionConfidence = HandLandmarkerHelper.DEFAULT_HAND_DETECTION_CONFIDENCE,
+                minHandTrackingConfidence = HandLandmarkerHelper.DEFAULT_HAND_TRACKING_CONFIDENCE,
+                minHandPresenceConfidence = HandLandmarkerHelper.DEFAULT_HAND_PRESENCE_CONFIDENCE,
+                maxNumHands = 1,
+                handLandmarkerHelperListener = handLandmarkerListener,
+                currentDelegate = HandLandmarkerHelper.DELEGATE_CPU
+            )
+        }
+
+        backgroundExecutor.execute {
+            handDetectorHelper!!.clearHandLandmarker()
+            handDetectorHelper!!.setupHandLandmarker()
         }
 
         cameraProviderFuture.addListener({
@@ -249,7 +252,9 @@ private fun CameraView(
             val preview = androidx.camera.core.Preview.Builder()
                 .setResolutionSelector(
                     ResolutionSelector.Builder()
-                        .setAspectRatioStrategy(AspectRatioStrategy.RATIO_4_3_FALLBACK_AUTO_STRATEGY)
+                        .setAspectRatioStrategy(AspectRatioStrategy.RATIO_16_9_FALLBACK_AUTO_STRATEGY)
+                        .setHighResolutionEnabledFlag(HIGH_RESOLUTION_FLAG_OFF)
+//                        .setResolutionStrategy(ResolutionStrategy(Size()))
                         .build()
                 )
                 .setTargetRotation(previewView.display.rotation)
@@ -262,6 +267,7 @@ private fun CameraView(
                 .setResolutionSelector(
                     ResolutionSelector.Builder()
                         .setAspectRatioStrategy(AspectRatioStrategy.RATIO_4_3_FALLBACK_AUTO_STRATEGY)
+                        .setHighResolutionEnabledFlag(HIGH_RESOLUTION_FLAG_OFF)
                         .build()
                 )
                 .setTargetRotation(previewView.display.rotation)
@@ -270,20 +276,22 @@ private fun CameraView(
                 .build()
                 .also {
                     it.setAnalyzer(backgroundExecutor) { image ->
-                        handDetectorHelper.detectLiveStream(
-                            imageProxy = image,
-                            isFrontCamera = cameraLens == CameraSelector.LENS_FACING_FRONT
-                        )
+//                        handDetectorHelper?.let { helper ->
+//                            helper.detectLiveStream(
+//                                imageProxy = image,
+//                                isFrontCamera = cameraLens == CameraSelector.LENS_FACING_FRONT
+//                            )
+//                        }
 
-//                        val bitmapBuffer = Bitmap.createBitmap(
-//                            image.width,
-//                            image.height,
-//                            Bitmap.Config.ARGB_8888
-//                        )
-//                        image.use { bitmapBuffer.copyPixelsFromBuffer(image.planes[0].buffer) }
-//                        val imageRotation = image.imageInfo.rotationDegrees
-//                        // Pass Bitmap and rotation to the object detector helper for processing and detection
-//                        objectDetectorHelper.detect(bitmapBuffer, imageRotation)
+                        val bitmapBuffer = Bitmap.createBitmap(
+                            image.width,
+                            image.height,
+                            Bitmap.Config.ARGB_8888
+                        )
+                        image.use { bitmapBuffer.copyPixelsFromBuffer(image.planes[0].buffer) }
+                        val imageRotation = image.imageInfo.rotationDegrees
+                        // Pass Bitmap and rotation to the object detector helper for processing and detection
+                        objectDetectorHelper.detect(bitmapBuffer, imageRotation)
                     }
                 }
 
