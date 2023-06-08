@@ -22,28 +22,23 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
-import androidx.navigation.navigation
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuth.IdTokenListener
 import com.wesign.wesign.core.SessionManager
 import com.wesign.wesign.domain.WeSignRepository
+import com.wesign.wesign.navigation.NestedGraph
 import com.wesign.wesign.navigation.Screen
+import com.wesign.wesign.navigation.graph.buildLearningNavGraph
+import com.wesign.wesign.navigation.graph.buildTextToSignNavGraph
 import com.wesign.wesign.ui.analyze.AnalyzerRoute
-import com.wesign.wesign.ui.courseDetail.CourseDetailRoute
 import com.wesign.wesign.ui.home.HomeRoute
-import com.wesign.wesign.ui.learning.LearningRoute
 import com.wesign.wesign.ui.login.LoginRoute
 import com.wesign.wesign.ui.profile.ProfileRoute
 import com.wesign.wesign.ui.register.RegisterInformationRoute
 import com.wesign.wesign.ui.register.RegisterRoute
-import com.wesign.wesign.ui.texttosign.TextToSignRoute
-import com.wesign.wesign.ui.texttosign.TextToSignViewModel
-import com.wesign.wesign.ui.texttosign.generate.GenerateSignRoute
 import com.wesign.wesign.ui.theme.WeSignTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
@@ -177,16 +172,18 @@ class MainActivity : ComponentActivity() {
                                     navController.navigate(Screen.Profile.route)
                                 },
                                 onLearningPressed = {
-                                    navController.navigate(Screen.Learning.route)
+                                    navController.navigate(NestedGraph.LearningFeature.nestedRoute)
                                 },
                                 onTextToSignPressed = {
-                                    navController.navigate(Screen.TextToSign.route)
+                                    navController.navigate(NestedGraph.TextToSignFeature.nestedRoute)
                                 }
                             )
                         }
 
+                        buildLearningNavGraph(navController = navController)
+                        buildTextToSignNavGraph(navController = navController)
+
                         composable(Screen.AnalyzerCamera.route) {
-//                            startActivity(Intent(applicationContext, AnalyzerActivity::class.java))
                             AnalyzerRoute(
                                 onNavigateUp = {
                                     navController.navigateUp()
@@ -219,69 +216,6 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        composable(Screen.Learning.route) {
-                            LearningRoute(
-                                onNavigateUp = {
-                                    navController.navigateUp()
-                                },
-                                onItemClicked = { id ->
-                                    navController.navigate(Screen.CourseDetail.createRoute(id))
-                                }
-                            )
-                        }
-
-                        composable(
-                            Screen.CourseDetail.route,
-                            arguments = listOf(
-                                navArgument("id") {
-                                    type = NavType.IntType
-                                    defaultValue = -1
-                                    nullable = false
-                                }
-                            ),
-                        ) {
-                            CourseDetailRoute(
-                                onNavigateBack = {
-                                    navController.navigateUp()
-                                },
-                                idCourse = it.arguments?.getInt("id") ?: -1
-                            )
-                        }
-
-                        navigation(
-                            startDestination = Screen.TextToSignStart.route,
-                            Screen.TextToSign.route
-                        ) {
-                            composable(Screen.TextToSignStart.route) {
-                                val sharedViewModel =
-                                    it.sharedViewModel<TextToSignViewModel>(navController = navController)
-                                TextToSignRoute(
-                                    sharedViewModel,
-                                    onNavigateBack = {
-                                        navController.navigateUp()
-                                    },
-                                    onGeneratePressed = { data ->
-                                        navController.navigate(Screen.TextToSignGenerate.route) {
-                                            navArgument("words") {
-
-                                            }
-                                        }
-                                    }
-                                )
-                            }
-
-                            composable(Screen.TextToSignGenerate.route) {
-                                val sharedViewModel =
-                                    it.sharedViewModel<TextToSignViewModel>(navController = navController)
-                                GenerateSignRoute(
-                                    sharedViewModel,
-                                    onNavigateBack = {
-                                        navController.navigateUp()
-                                    },
-                                )
-                            }
-
-                        }
 
                     }
                 }

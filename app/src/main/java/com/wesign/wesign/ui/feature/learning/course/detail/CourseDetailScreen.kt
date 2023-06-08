@@ -1,4 +1,4 @@
-package com.wesign.wesign.ui.courseDetail
+package com.wesign.wesign.ui.feature.learning.course.detail
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,7 +32,8 @@ import com.wesign.wesign.ui.theme.WeSignTheme
 fun CourseDetailRoute(
     viewModel: CourseDetailViewModel = hiltViewModel(),
     idCourse: Int = -1,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    onStartLearning: () -> Unit
 ) {
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -41,13 +42,14 @@ fun CourseDetailRoute(
         viewModel.getCourse(idCourse)
     }
 
-    CourseDetailScreen(uiState, onNavigateBack = onNavigateBack)
+    CourseDetailScreen(uiState, onNavigateBack = onNavigateBack, onStartLearning = onStartLearning)
 }
 
 @Composable
 fun CourseDetailScreen(
     uiState: CourseDetailState = CourseDetailState(),
-    onNavigateBack: () -> Unit = {}
+    onNavigateBack: () -> Unit = {},
+    onStartLearning: () -> Unit = {}
 ) {
     Scaffold(
         topBar = {
@@ -96,8 +98,9 @@ fun CourseDetailScreen(
                     .height(100.dp),
                 contentAlignment = Alignment.Center
             ) {
+                if (uiState.isLoading) return@Box
                 Button(
-                    onClick = { },
+                    onClick = onStartLearning,
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary,

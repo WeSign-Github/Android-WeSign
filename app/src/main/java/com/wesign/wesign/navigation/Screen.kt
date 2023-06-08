@@ -14,7 +14,12 @@ sealed class Screen(val route: String) {
 
     object AnalyzerCamera : Screen("analyze")
 
-    object TextToSign : Screen("text-to-sign")
-    object TextToSignStart : Screen("tts-start")
-    object TextToSignGenerate : Screen("tts-generate")
+
+    object TextToSignPick : Screen("text-to-sign/pick")
+    object TextToSignGenerate : Screen("text-to-sign/generate")
+
+    object Lesson : Screen("lesson/{id}") {
+        fun createRoute(lessonId: Int) = "lesson/$lessonId"
+    }
 }
+

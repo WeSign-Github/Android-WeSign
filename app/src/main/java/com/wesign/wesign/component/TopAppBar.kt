@@ -1,11 +1,14 @@
 package com.wesign.wesign.component
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -25,6 +28,7 @@ fun MyTopAppBar(
     modifier: Modifier = Modifier,
     title: String = "",
     onNavigateBack: (() -> Unit)? = null,
+    actions: @Composable RowScope.() -> Unit = {},
 ) {
     TopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(
@@ -54,6 +58,7 @@ fun MyTopAppBar(
                 }
             }
         },
+        actions = actions
     )
 
 }
@@ -71,5 +76,20 @@ private fun MyTopAppBarPreview() {
 private fun MyTopAppBarWithNavBackPreview() {
     WeSignTheme {
         MyTopAppBar(title = "Course Detail", onNavigateBack = {})
+    }
+}
+
+@Preview
+@Composable
+private fun MyTopAppBarWithNavBackWithActionPreview() {
+    WeSignTheme {
+        MyTopAppBar(title = "Course Detail", onNavigateBack = {}, actions = {
+            IconButton(onClick = { }) {
+                Icon(
+                    imageVector = Icons.Filled.List,
+                    contentDescription = "Localized description"
+                )
+            }
+        })
     }
 }

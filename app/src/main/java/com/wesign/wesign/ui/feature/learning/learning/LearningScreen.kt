@@ -1,4 +1,4 @@
-package com.wesign.wesign.ui.learning
+package com.wesign.wesign.ui.feature.learning.learning
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,7 +28,7 @@ import com.google.accompanist.placeholder.material.placeholder
 import com.google.accompanist.placeholder.material.shimmer
 import com.wesign.wesign.component.MyTopAppBar
 import com.wesign.wesign.data.entity.Course
-import com.wesign.wesign.ui.learning.component.CourseListItem
+import com.wesign.wesign.ui.feature.learning.learning.component.CourseListItem
 import com.wesign.wesign.ui.theme.WeSignTheme
 
 @Composable

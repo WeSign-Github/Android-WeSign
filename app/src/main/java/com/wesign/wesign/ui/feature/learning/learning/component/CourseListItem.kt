@@ -1,4 +1,4 @@
-package com.wesign.wesign.ui.learning.component
+package com.wesign.wesign.ui.feature.learning.learning.component
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column

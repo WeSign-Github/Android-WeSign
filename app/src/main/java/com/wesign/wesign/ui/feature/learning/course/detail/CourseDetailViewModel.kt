@@ -1,4 +1,4 @@
-package com.wesign.wesign.ui.courseDetail
+package com.wesign.wesign.ui.feature.learning.course.detail
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
