@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -17,11 +18,16 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.ViewModel
+import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import androidx.navigation.navigation
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuth.IdTokenListener
 import com.wesign.wesign.core.SessionManager
@@ -35,6 +41,9 @@ import com.wesign.wesign.ui.login.LoginRoute
 import com.wesign.wesign.ui.profile.ProfileRoute
 import com.wesign.wesign.ui.register.RegisterInformationRoute
 import com.wesign.wesign.ui.register.RegisterRoute
+import com.wesign.wesign.ui.texttosign.TextToSignRoute
+import com.wesign.wesign.ui.texttosign.TextToSignViewModel
+import com.wesign.wesign.ui.texttosign.generate.GenerateSignRoute
 import com.wesign.wesign.ui.theme.WeSignTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
@@ -169,6 +178,9 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onLearningPressed = {
                                     navController.navigate(Screen.Learning.route)
+                                },
+                                onTextToSignPressed = {
+                                    navController.navigate(Screen.TextToSign.route)
                                 }
                             )
                         }
@@ -235,9 +247,57 @@ class MainActivity : ComponentActivity() {
                                 idCourse = it.arguments?.getInt("id") ?: -1
                             )
                         }
+
+                        navigation(
+                            startDestination = Screen.TextToSignStart.route,
+                            Screen.TextToSign.route
+                        ) {
+                            composable(Screen.TextToSignStart.route) {
+                                val sharedViewModel =
+                                    it.sharedViewModel<TextToSignViewModel>(navController = navController)
+                                TextToSignRoute(
+                                    sharedViewModel,
+                                    onNavigateBack = {
+                                        navController.navigateUp()
+                                    },
+                                    onGeneratePressed = { data ->
+                                        navController.navigate(Screen.TextToSignGenerate.route) {
+                                            navArgument("words") {
+
+                                            }
+                                        }
+                                    }
+                                )
+                            }
+
+                            composable(Screen.TextToSignGenerate.route) {
+                                val sharedViewModel =
+                                    it.sharedViewModel<TextToSignViewModel>(navController = navController)
+                                GenerateSignRoute(
+                                    sharedViewModel,
+                                    onNavigateBack = {
+                                        navController.navigateUp()
+                                    },
+                                )
+                            }
+
+                        }
+
                     }
                 }
             }
         }
     }
+}
+
+@Composable
+inline fun <reified T : ViewModel> NavBackStackEntry.sharedViewModel(
+    navController: NavController
+): T {
+    val navGraphRoute = destination.parent?.route ?: return hiltViewModel()
+
+    val parentEntry = remember(this) {
+        navController.getBackStackEntry(navGraphRoute)
+    }
+    return hiltViewModel(parentEntry)
 }

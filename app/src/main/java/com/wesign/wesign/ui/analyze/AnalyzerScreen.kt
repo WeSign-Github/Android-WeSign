@@ -2,7 +2,6 @@ package com.wesign.wesign.ui.analyze
 
 import android.Manifest
 import android.graphics.Bitmap
-import android.graphics.RectF
 import android.util.Log
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
@@ -16,6 +15,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -28,7 +28,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Cameraswitch
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -36,11 +38,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
@@ -110,7 +114,7 @@ fun AnalyzerScreen(
     onNavigateUp: () -> Unit = { },
 ) {
     var lensFacing by remember { mutableStateOf(CameraSelector.LENS_FACING_BACK) }
-    var detection = remember { Detection.create(RectF(), listOf()) }
+    var detection by remember { mutableStateOf<Detection?>(null) }
 
     Scaffold() { contentPadding ->
         Box(
@@ -123,28 +127,51 @@ fun AnalyzerScreen(
                 modifier = Modifier.matchParentSize(),
                 cameraLens = lensFacing,
                 onAnalyze = {
+                    Log.d("Analyzer","test")
                     detection = it
+
                 },
                 onHandLanmark = { result, height, width, runningMode ->
                     val newState = AnalyzerState(result, IntSize(width, height), runningMode)
                     onUiStateUpdate(newState)
                 }
             )
+
+            detection?.let {
+                Log.d("Analyzer","PASS")
+                Box(
+                    Modifier
+                        .fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column (
+                        Modifier.fillMaxSize()
+                    ) {
+                        Text(
+                            "%${it.categories[0].score}",
+                            Modifier.fillMaxWidth().weight(1f),
+                            textAlign = TextAlign.Center,
+                            color = MaterialTheme.colorScheme.tertiary,
+                            style = MaterialTheme.typography.headlineMedium
+                        )
+                        Text(
+                            it.categories[0].label,
+                            Modifier.fillMaxWidth().weight(1f),
+                            textAlign = TextAlign.Center,
+                            color = MaterialTheme.colorScheme.tertiary,
+                            style = MaterialTheme.typography.headlineMedium
+                        )
+                    }
+
+                }
+            }
 //            HandOverlayView(
 //                modifier = Modifier.matchParentSize(),
 //                handLandmarkerResults = analyzerState.handLandmarkerResult,
 //                imageHeight = analyzerState.landmarkImageSize.height,
 //                imageWidth = analyzerState.landmarkImageSize.width
 //            )
-//            if (detection.categories.size != 0) {
-//                Text(
-//                    "${detection.categories[0].score} ${detection.categories[0].label}",
-//                    Modifier.fillMaxSize(),
-//                    textAlign = TextAlign.Center,
-//                    color = MaterialTheme.colorScheme.tertiary,
-//                    style = MaterialTheme.typography.headlineMedium
-//                )
-//            }
+
             AnalyzerTopBar(
                 onNavigateUp = onNavigateUp,
                 onSwitchCamera = {

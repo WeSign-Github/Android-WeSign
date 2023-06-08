@@ -4,6 +4,7 @@ import android.util.Log
 import com.wesign.wesign.data.entity.CourseDetailResponse
 import com.wesign.wesign.data.entity.CourseResponse
 import com.wesign.wesign.data.entity.SelfUserResponse
+import com.wesign.wesign.data.entity.TextToSignResponse
 import com.wesign.wesign.data.entity.WeSignRegisterResponse
 import com.wesign.wesign.data.entity.request.RegisterRequest
 import com.wesign.wesign.data.remote.WeSignApiService
@@ -58,6 +59,28 @@ class WeSignRepositoryImpl @Inject constructor(
         try {
             val result = apiService.getCourseDetail(id)
             delay(3000) // TODO Delete this later
+            emit(Resource.Success(result))
+        } catch (ex: Exception) {
+            emit(Resource.Error(ex))
+            Log.e("WeSignRepo", ex.message.toString())
+        }
+    }
+
+    override fun getAllSignToTextWord(): Flow<Resource<TextToSignResponse>> = flow {
+        emit(Resource.Loading)
+        try {
+            val result = apiService.getTextToSign()
+            emit(Resource.Success(result))
+        } catch (ex: Exception) {
+            emit(Resource.Error(ex))
+            Log.e("WeSignRepo", ex.message.toString())
+        }
+    }
+
+    override fun getSignToText(text: String): Flow<Resource<TextToSignResponse>> = flow {
+        emit(Resource.Loading)
+        try {
+            val result = apiService.getTextToSign(text)
             emit(Resource.Success(result))
         } catch (ex: Exception) {
             emit(Resource.Error(ex))

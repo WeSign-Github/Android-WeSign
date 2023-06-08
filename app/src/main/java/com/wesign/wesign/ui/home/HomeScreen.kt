@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
@@ -40,11 +41,13 @@ internal fun HomeRoute(
     onAnalyzePressed: () -> Unit,
     onLearningPressed: () -> Unit,
     onProfilePressed: () -> Unit,
+    onTextToSignPressed: () -> Unit
 ) {
     HomeScreen(
         onAnalyzePressed = onAnalyzePressed,
         onProfilePressed = onProfilePressed,
-        onLearningPressed = onLearningPressed
+        onLearningPressed = onLearningPressed,
+        onTextToSignPressed = onTextToSignPressed
     )
 }
 
@@ -53,6 +56,7 @@ fun HomeScreen(
     onAnalyzePressed: () -> Unit = {},
     onLearningPressed: () -> Unit = {},
     onProfilePressed: () -> Unit = {},
+    onTextToSignPressed: () -> Unit = {}
 ) {
     Scaffold() { contentPadding ->
         Column(
@@ -73,9 +77,9 @@ fun HomeScreen(
             Row(Modifier.fillMaxWidth(), Arrangement.Center) {
                 CardButton(
                     modifier = Modifier.weight(1f),
-                    text = "Start Analyze",
-                    imageResId = R.drawable.ic_analyze,
-                    onClick = onAnalyzePressed
+                    text = "Text to Sign",
+                    imageResId = R.drawable.ic_shorttext,
+                    onClick = onTextToSignPressed
                 )
                 Spacer(modifier = Modifier.width(20.dp))
                 CardButton(
@@ -85,11 +89,57 @@ fun HomeScreen(
                     onClick = onLearningPressed
                 )
             }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            LongCardButton(
+                text = "Start Analyze",
+                imageResId = R.drawable.ic_analyze,
+                onClick = onAnalyzePressed
+            )
         }
 
     }
 }
 
+@Composable
+private fun LongCardButton(
+    modifier: Modifier = Modifier,
+    imageResId: Int,
+    text: String,
+    onClick: () -> Unit = {}
+) {
+    Card(
+        Modifier
+            .then(modifier)
+            .fillMaxWidth()
+            .wrapContentHeight()
+            .clickable { onClick() },
+        colors = CardDefaults.cardColors(LocalExtendedColorScheme.current.surfaceContainer),
+        elevation = CardDefaults.cardElevation(4.dp),
+    ) {
+        Row(
+            Modifier
+                .padding(vertical = 30.dp)
+                .fillMaxWidth()
+                .wrapContentHeight(),
+            Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Image(
+                painterResource(id = imageResId),
+                contentDescription = text,
+                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface)
+            )
+            Text(
+                text,
+                style = MaterialTheme.typography.headlineSmall,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        }
+
+    }
+}
 
 @Composable
 private fun CardButton(
@@ -114,13 +164,16 @@ private fun CardButton(
         ) {
             Image(
                 painterResource(id = imageResId),
+                modifier = Modifier
+                    .height(40.dp)
+                    .width(40.dp),
                 contentDescription = text,
-                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
+                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface)
             )
             Text(
                 text,
                 style = MaterialTheme.typography.headlineSmall,
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
 
@@ -184,7 +237,7 @@ private fun HomeTopBar(
 @Preview(showSystemUi = true)
 @Composable
 private fun HomeScreenPreview() {
-    WeSignTheme {
+    WeSignTheme(dynamicColor = false) {
         HomeScreen()
     }
 }

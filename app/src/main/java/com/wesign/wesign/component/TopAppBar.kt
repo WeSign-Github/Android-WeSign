@@ -60,7 +60,7 @@ fun MyTopAppBar(
 
 @Preview()
 @Composable
-fun MyTopAppBarPreview() {
+private fun MyTopAppBarPreview() {
     WeSignTheme {
         MyTopAppBar(title = "Course Detail")
     }
@@ -68,7 +68,7 @@ fun MyTopAppBarPreview() {
 
 @Preview
 @Composable
-fun MyTopAppBarWithNavBackPreview() {
+private fun MyTopAppBarWithNavBackPreview() {
     WeSignTheme {
         MyTopAppBar(title = "Course Detail", onNavigateBack = {})
     }

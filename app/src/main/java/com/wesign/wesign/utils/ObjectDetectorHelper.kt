@@ -81,7 +81,7 @@ class ObjectDetectorHelper(
 
         optionsBuilder.setBaseOptions(baseOptionsBuilder.build())
 
-        val modelName = "tflite_hand_signature.tflite"
+        val modelName = "metadata-bisindo.tflite"
 
         try {
             objectDetector =
