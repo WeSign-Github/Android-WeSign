@@ -124,7 +124,7 @@ dependencies {
     implementation 'org.tensorflow:tensorflow-lite-gpu:2.9.0'
 
     // MediaPipe
-    implementation 'com.google.mediapipe:tasks-vision:0.10.0'
+//    implementation 'com.google.mediapipe:tasks-vision:0.10.0'
 
     // accompanist
     implementation "com.google.accompanist:accompanist-permissions:0.23.1"
@@ -136,7 +136,6 @@ dependencies {
 //    implementation "com.github.skydoves:landscapist-placeholder"
 
     implementation("io.coil-kt:coil-compose:2.4.0")
-//    implementation "com.github.skydoves:landscapist-glide"
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'

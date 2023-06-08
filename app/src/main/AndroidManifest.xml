@@ -20,11 +20,6 @@
         android:theme="@style/Theme.WeSign"
         tools:targetApi="31">
         <activity
-            android:name=".ui.analyze.AnalyzerActivity"
-            android:exported="false"
-            android:label="@string/title_activity_analyzer"
-            android:theme="@style/Theme.WeSign" />
-        <activity
             android:name=".MainActivity"
             android:exported="true"
             android:label="@string/app_name"
