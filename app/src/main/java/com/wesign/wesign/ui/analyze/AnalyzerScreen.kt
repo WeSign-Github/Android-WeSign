@@ -27,10 +27,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Cameraswitch
+import androidx.compose.material3.BottomSheetScaffold
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -44,7 +45,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -102,6 +102,7 @@ internal fun AnalyzerRoute(
 }
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AnalyzerScreen(
     uiState: AnalyzerState = AnalyzerState(),
@@ -110,7 +111,32 @@ fun AnalyzerScreen(
     var lensFacing by remember { mutableStateOf(CameraSelector.LENS_FACING_BACK) }
     var detection by remember { mutableStateOf<Detection?>(null) }
 
-    Scaffold() { contentPadding ->
+    val bottomSheetScaffoldState = rememberBottomSheetScaffoldState()
+
+    BottomSheetScaffold(
+        scaffoldState = bottomSheetScaffoldState,
+        sheetPeekHeight = 80.dp,
+        sheetContent = {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(130.dp),
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text("Development Phase:")
+                    detection?.let {
+                        Log.d("Analyzer", it.categories[0].label)
+                        Text(it.categories[0].label)
+                        Text("${(it.categories[0].score*100).toInt()}")
+                    }
+                }
+            }
+        },
+    ) { contentPadding ->
         Box(
             Modifier
                 .padding(contentPadding)
@@ -120,40 +146,10 @@ fun AnalyzerScreen(
             CameraView(
                 modifier = Modifier.matchParentSize(),
                 cameraLens = lensFacing,
-                onAnalyze = {
-                    Log.d("Analyzer","test")
-                    detection = it
+                onAnalyze = { result ->
+                    detection = result
                 },
             )
-
-            detection?.let {
-                Log.d("Analyzer","PASS")
-                Box(
-                    Modifier
-                        .fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column (
-                        Modifier.fillMaxSize()
-                    ) {
-                        Text(
-                            "%${it.categories[0].score}",
-                            Modifier.fillMaxWidth().weight(1f),
-                            textAlign = TextAlign.Center,
-                            color = MaterialTheme.colorScheme.tertiary,
-                            style = MaterialTheme.typography.headlineMedium
-                        )
-                        Text(
-                            it.categories[0].label,
-                            Modifier.fillMaxWidth().weight(1f),
-                            textAlign = TextAlign.Center,
-                            color = MaterialTheme.colorScheme.tertiary,
-                            style = MaterialTheme.typography.headlineMedium
-                        )
-                    }
-
-                }
-            }
 
             AnalyzerTopBar(
                 onNavigateUp = onNavigateUp,
@@ -170,7 +166,7 @@ fun AnalyzerScreen(
 private fun CameraView(
     modifier: Modifier = Modifier,
     cameraLens: Int = CameraSelector.LENS_FACING_BACK,
-    onAnalyze: (Detection) -> Unit = {},
+    onAnalyze: (Detection?) -> Unit = {},
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
     val context = LocalContext.current
@@ -200,11 +196,20 @@ private fun CameraView(
             ) {
                 scope.launch {
                     Log.d("Analyzer", "inferenceTime: $inferenceTime")
-                    if (results != null) {
-                        for (result in results) {
-                            onAnalyze(result)
-                            Log.d("Analyzer", result.categories[0].toString())
+                    results?.let {
+                        if (results.size <= 0) {
+                            Log.d("Analyzer", "Size Detection 0")
+                            onAnalyze(null)
+                            return@let
                         }
+
+                        for (detect in results) {
+                            Log.d("Analyzer", "Subject")
+                            onAnalyze(detect)
+                        }
+                    } ?: run {
+                        Log.d("Analyzer", "No Subject")
+                        onAnalyze(null)
                     }
                 }
             }
@@ -213,7 +218,10 @@ private fun CameraView(
 
 
     val objectDetectorHelper: ObjectDetectorHelper = remember {
-        ObjectDetectorHelper(context = context, objectDetectorListener = detectorListener)
+        ObjectDetectorHelper(
+            context = context,
+            objectDetectorListener = detectorListener,
+        )
     }
 
     LaunchedEffect(cameraLens) {

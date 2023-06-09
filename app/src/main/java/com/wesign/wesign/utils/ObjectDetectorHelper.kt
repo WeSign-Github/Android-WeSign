@@ -19,6 +19,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.os.SystemClock
 import android.util.Log
+import com.wesign.wesign.core.SignLanguageModels
 import org.tensorflow.lite.gpu.CompatibilityList
 import org.tensorflow.lite.support.image.ImageProcessor
 import org.tensorflow.lite.support.image.TensorImage
@@ -28,12 +29,13 @@ import org.tensorflow.lite.task.vision.detector.Detection
 import org.tensorflow.lite.task.vision.detector.ObjectDetector
 
 class ObjectDetectorHelper(
-  var threshold: Float = 0.5f,
-  var numThreads: Int = 2,
-  var maxResults: Int = 3,
-  var currentDelegate: Int = 0,
-  val context: Context,
-  val objectDetectorListener: DetectorListener?
+    var threshold: Float = 0.5f,
+    var numThreads: Int = 2,
+    var maxResults: Int = 3,
+    var currentDelegate: Int = 0,
+    val context: Context,
+    val signModel: SignLanguageModels = SignLanguageModels.SIBI,
+    val objectDetectorListener: DetectorListener?
 ) {
 
     // For this example this needs to be a var so it can be reset on changes. If the ObjectDetector
@@ -81,7 +83,8 @@ class ObjectDetectorHelper(
 
         optionsBuilder.setBaseOptions(baseOptionsBuilder.build())
 
-        val modelName = "metadata-bisindo.tflite"
+//        val modelName = "metadata-bisindo.tflite"
+        val modelName = signModel.filename
 
         try {
             objectDetector =
