@@ -177,6 +177,7 @@ fun TextToSignScreen(
                         .height(80.dp)
                 ) {
                     Button(
+                        enabled = uiState.selectedWord.isNotEmpty(),
                         onClick = { onGeneratePressed(uiState.selectedWord) },
                         modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.buttonColors(
