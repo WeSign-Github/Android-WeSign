@@ -26,6 +26,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -33,6 +36,7 @@ import androidx.compose.material.icons.filled.Cameraswitch
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
@@ -48,6 +52,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.text.capitalize
+import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
@@ -100,7 +106,8 @@ internal fun AnalyzerRoute(
     ) {
         AnalyzerScreen(
             uiState = uiState,
-            onNavigateUp = onNavigateUp
+            onNavigateUp = onNavigateUp,
+            onAddDetectionHistory = viewModel::addHistory
         )
     }
 }
@@ -110,12 +117,13 @@ internal fun AnalyzerRoute(
 @Composable
 fun AnalyzerScreen(
     uiState: AnalyzerState = AnalyzerState(),
+    onAddDetectionHistory: (Detection) -> Unit = {},
     onNavigateUp: () -> Unit = { },
 ) {
+    val scope = rememberCoroutineScope()
+
     var lensFacing by remember { mutableStateOf(CameraSelector.LENS_FACING_BACK) }
-    var detection by remember { mutableStateOf<Detection?>(null) }
-    var lastestSize by remember { mutableStateOf<IntSize>(IntSize(0, 0)) }
-    var lastestInferenceTime by remember { mutableStateOf<Long>(0) }
+    var firstTime by remember { mutableStateOf(true) }
 
     val bottomSheetScaffoldState = rememberBottomSheetScaffoldState()
 
@@ -126,20 +134,45 @@ fun AnalyzerScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(130.dp),
+                    .height(150.dp),
             ) {
                 Column(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 25.dp),
                     verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    horizontalAlignment = Alignment.Start
                 ) {
-                    Text("Development Phase:")
-                    detection?.let {
-                        Log.d("Analyzer", it.categories[0].label)
-                        Text(it.categories[0].label)
-                        Text("${(it.categories[0].score * 100).toInt()}")
-                        Text("InferenceTime: ${lastestInferenceTime}")
-                        Text("Size: $lastestSize")
+                    if (uiState.detectionHistory.isNotEmpty()) {
+                        val reversedList = uiState.detectionHistory.reversed()
+                        val latestDetection = reversedList.first()
+                        Text(
+                            latestDetection.categories[0].label.capitalize(Locale.current),
+                            Modifier
+                                .fillMaxWidth()
+                                .wrapContentHeight()
+                                .padding(vertical = 3.dp),
+                            style = MaterialTheme.typography.headlineMedium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+
+                        LazyColumn(
+                            Modifier
+                                .weight(1f)
+                                .fillMaxWidth()
+                        ) {
+                            items(reversedList.minus(latestDetection)) {
+                                Text(
+                                    it.categories[0].label.capitalize(Locale.current),
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .wrapContentHeight()
+                                        .padding(vertical = 2.dp),
+                                    style = MaterialTheme.typography.headlineSmall,
+                                    color = Color.Gray
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -155,9 +188,19 @@ fun AnalyzerScreen(
                 modifier = Modifier.matchParentSize(),
                 cameraLens = lensFacing,
                 onAnalyze = { result, inferenceTime, size ->
-                    detection = result
-                    lastestInferenceTime = inferenceTime
-                    lastestSize = size
+                    result?.let {
+                        if (it.categories[0].score <= 0.80) return@let
+
+                        onAddDetectionHistory(it)
+
+                        if (firstTime) {
+                            scope.launch {
+                                bottomSheetScaffoldState.bottomSheetState.expand()
+                            }
+                            firstTime = false
+                        }
+                    }
+
                 },
             )
 
@@ -255,7 +298,12 @@ private fun CameraView(
             val imageAnalysis: ImageAnalysis = ImageAnalysis.Builder()
                 .setResolutionSelector(
                     ResolutionSelector.Builder()
-                        .setResolutionStrategy(ResolutionStrategy(Size(640,480),FALLBACK_RULE_CLOSEST_HIGHER))
+                        .setResolutionStrategy(
+                            ResolutionStrategy(
+                                Size(640, 360),
+                                FALLBACK_RULE_CLOSEST_HIGHER
+                            ),
+                        )
                         .setHighResolutionEnabledFlag(HIGH_RESOLUTION_FLAG_OFF)
                         .build()
                 )
