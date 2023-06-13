@@ -1,13 +1,17 @@
 package com.wesign.wesign.ui.analyze
 
 import androidx.lifecycle.ViewModel
+import com.wesign.wesign.utils.ObjectDetectorHelper
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import org.tensorflow.lite.task.vision.detector.Detection
+import javax.inject.Inject
 
-class AnalyzerViewModel : ViewModel() {
+@HiltViewModel
+class AnalyzerViewModel @Inject constructor() : ViewModel() {
 
     private val _uiState = MutableStateFlow(AnalyzerState())
     val uiState: StateFlow<AnalyzerState> = _uiState.asStateFlow()
@@ -24,6 +28,13 @@ class AnalyzerViewModel : ViewModel() {
                 detectionHistory = it.detectionHistory.plus(value)
             )
         }
+    }
 
+    fun setObjectDetectorHelper(listener: ObjectDetectorHelper) {
+        _uiState.update {
+            it.copy(
+                objectDetectorHelper = listener
+            )
+        }
     }
 }

@@ -14,14 +14,10 @@ import androidx.camera.core.resolutionselector.ResolutionStrategy
 import androidx.camera.core.resolutionselector.ResolutionStrategy.FALLBACK_RULE_CLOSEST_HIGHER
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -29,13 +25,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Cameraswitch
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetScaffoldState
@@ -49,21 +40,20 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionsRequired
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import com.wesign.wesign.ui.analyze.common.AnalyzerTopBar
 import com.wesign.wesign.ui.theme.WeSignTheme
 import com.wesign.wesign.utils.ObjectDetectorHelper
 import kotlinx.coroutines.launch
@@ -74,12 +64,11 @@ import java.util.concurrent.Executors
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 internal fun AnalyzerRoute(
+    viewModel: AnalyzerViewModel = hiltViewModel(),
     onNavigateUp: () -> Unit,
     onNotGrantedPermission: () -> Unit = {},
     onNotAvailable: () -> Unit = {},
 ) {
-
-    val viewModel = viewModel<AnalyzerViewModel>()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     val PERMISSION = listOf(
@@ -107,7 +96,8 @@ internal fun AnalyzerRoute(
         AnalyzerScreen(
             uiState = uiState,
             onNavigateUp = onNavigateUp,
-            onAddDetectionHistory = viewModel::addHistory
+            onAddDetectionHistory = viewModel::addHistory,
+            onInitHelper = viewModel::setObjectDetectorHelper
         )
     }
 }
@@ -119,13 +109,47 @@ fun AnalyzerScreen(
     uiState: AnalyzerState = AnalyzerState(),
     onAddDetectionHistory: (Detection) -> Unit = {},
     onNavigateUp: () -> Unit = { },
+    onInitHelper: (ObjectDetectorHelper) -> Unit = {},
 ) {
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     var lensFacing by remember { mutableStateOf(CameraSelector.LENS_FACING_BACK) }
     var firstTime by remember { mutableStateOf(true) }
 
     val bottomSheetScaffoldState = rememberBottomSheetScaffoldState()
+
+    val listener = object : ObjectDetectorHelper.DetectorListener {
+        override fun onError(error: String) {
+            Log.d("Analyzer", "Error: $error")
+        }
+
+        override fun onResults(
+            results: MutableList<Detection>?,
+            inferenceTime: Long,
+            imageHeight: Int,
+            imageWidth: Int
+        ) {
+            scope.launch {
+                Log.d("Analyzer", "inferenceTime: $inferenceTime")
+                results?.let {
+                    if (results.size <= 0) {
+                        return@let
+                    }
+
+                    for (detect in results) {
+                        onAddDetectionHistory(detect)
+                        if (firstTime) {
+                            scope.launch {
+                                bottomSheetScaffoldState.bottomSheetState.expand()
+                            }
+                            firstTime = false
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     BottomSheetScaffold(
         scaffoldState = bottomSheetScaffoldState,
@@ -187,21 +211,15 @@ fun AnalyzerScreen(
             CameraView(
                 modifier = Modifier.matchParentSize(),
                 cameraLens = lensFacing,
-                onAnalyze = { result, inferenceTime, size ->
-                    result?.let {
-                        if (it.categories[0].score <= 0.80) return@let
-
-                        onAddDetectionHistory(it)
-
-                        if (firstTime) {
-                            scope.launch {
-                                bottomSheetScaffoldState.bottomSheetState.expand()
-                            }
-                            firstTime = false
-                        }
-                    }
-
-                },
+                objectDetectorHelper = uiState.objectDetectorHelper ?: run {
+                    Log.d("Analyzer", "Init ObjectDetectorHelper")
+                    val objectHelper = ObjectDetectorHelper(
+                        context = context,
+                        objectDetectorListener = listener
+                    )
+                    onInitHelper(objectHelper)
+                    return@run objectHelper
+                }
             )
 
             AnalyzerTopBar(
@@ -219,7 +237,7 @@ fun AnalyzerScreen(
 private fun CameraView(
     modifier: Modifier = Modifier,
     cameraLens: Int = CameraSelector.LENS_FACING_BACK,
-    onAnalyze: (Detection?, Long, IntSize) -> Unit = { _, _, _ -> },
+    objectDetectorHelper: ObjectDetectorHelper,
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
     val context = LocalContext.current
@@ -232,50 +250,6 @@ private fun CameraView(
     }
 
     val executor = ContextCompat.getMainExecutor(context)
-
-    val scope = rememberCoroutineScope()
-
-    val detectorListener = remember {
-        object : ObjectDetectorHelper.DetectorListener {
-            override fun onError(error: String) {
-                Log.d("Analyzer", "Error: $error")
-            }
-
-            override fun onResults(
-                results: MutableList<Detection>?,
-                inferenceTime: Long,
-                imageHeight: Int,
-                imageWidth: Int
-            ) {
-                scope.launch {
-                    Log.d("Analyzer", "inferenceTime: $inferenceTime")
-                    results?.let {
-                        if (results.size <= 0) {
-                            Log.d("Analyzer", "Size Detection 0")
-                            onAnalyze(null, inferenceTime, IntSize(imageWidth, imageHeight))
-                            return@let
-                        }
-
-                        for (detect in results) {
-                            Log.d("Analyzer", "Subject")
-                            onAnalyze(detect, inferenceTime, IntSize(imageWidth, imageHeight))
-                        }
-                    } ?: run {
-                        Log.d("Analyzer", "No Subject")
-                        onAnalyze(null, inferenceTime, IntSize(imageWidth, imageHeight))
-                    }
-                }
-            }
-        }
-    }
-
-
-    val objectDetectorHelper: ObjectDetectorHelper = remember {
-        ObjectDetectorHelper(
-            context = context,
-            objectDetectorListener = detectorListener,
-        )
-    }
 
     LaunchedEffect(cameraLens) {
         cameraProviderFuture.addListener({
@@ -347,65 +321,6 @@ private fun CameraView(
         )
     }
 }
-
-@Composable
-private fun AnalyzerTopBar(
-    onNavigateUp: () -> Unit,
-    onSwitchCamera: () -> Unit
-) {
-    Row(
-        Modifier
-            .padding(10.dp)
-            .fillMaxWidth()
-            .height(45.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-    ) {
-        IconButton(
-            onClick = onNavigateUp,
-            Modifier
-                .fillMaxHeight()
-                .aspectRatio(1f)
-                .background(
-                    Color.Black.copy(
-                        alpha = 0.65f
-                    ),
-                    shape = CircleShape
-                ),
-        ) {
-            Image(
-                Icons.Filled.ArrowBack,
-                contentDescription = "Back",
-                Modifier
-                    .padding(8.dp)
-                    .fillMaxSize(),
-                colorFilter = ColorFilter.tint(Color.White)
-            )
-        }
-        IconButton(
-            onClick = onSwitchCamera,
-            Modifier
-                .fillMaxHeight()
-                .aspectRatio(1f)
-                .background(
-                    Color.Black.copy(
-                        alpha = 0.65f
-                    ),
-                    shape = CircleShape
-                ),
-        ) {
-            Image(
-                Icons.Filled.Cameraswitch,
-                contentDescription = "Back",
-                Modifier
-                    .padding(8.dp)
-                    .fillMaxSize(),
-                colorFilter = ColorFilter.tint(Color.White)
-            )
-        }
-
-    }
-}
-
 
 @Preview(showBackground = true)
 @Composable
