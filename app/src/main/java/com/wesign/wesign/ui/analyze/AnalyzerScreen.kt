@@ -1,19 +1,8 @@
 package com.wesign.wesign.ui.analyze
 
 import android.Manifest
-import android.graphics.Bitmap
 import android.util.Log
-import android.util.Size
 import androidx.camera.core.CameraSelector
-import androidx.camera.core.ImageAnalysis
-import androidx.camera.core.ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888
-import androidx.camera.core.resolutionselector.AspectRatioStrategy
-import androidx.camera.core.resolutionselector.ResolutionSelector
-import androidx.camera.core.resolutionselector.ResolutionSelector.HIGH_RESOLUTION_FLAG_OFF
-import androidx.camera.core.resolutionselector.ResolutionStrategy
-import androidx.camera.core.resolutionselector.ResolutionStrategy.FALLBACK_RULE_CLOSEST_HIGHER
-import androidx.camera.lifecycle.ProcessCameraProvider
-import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -41,25 +30,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
-import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionsRequired
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import com.wesign.wesign.component.MLCameraView
 import com.wesign.wesign.ui.analyze.common.AnalyzerTopBar
 import com.wesign.wesign.ui.theme.WeSignTheme
 import com.wesign.wesign.utils.ObjectDetectorHelper
 import kotlinx.coroutines.launch
 import org.tensorflow.lite.task.vision.detector.Detection
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -208,7 +193,7 @@ fun AnalyzerScreen(
                 .background(Color.Black)
                 .fillMaxSize(),
         ) {
-            CameraView(
+            MLCameraView(
                 modifier = Modifier.matchParentSize(),
                 cameraLens = lensFacing,
                 objectDetectorHelper = uiState.objectDetectorHelper ?: run {
@@ -233,94 +218,6 @@ fun AnalyzerScreen(
     }
 }
 
-@Composable
-private fun CameraView(
-    modifier: Modifier = Modifier,
-    cameraLens: Int = CameraSelector.LENS_FACING_BACK,
-    objectDetectorHelper: ObjectDetectorHelper,
-) {
-    val lifecycleOwner = LocalLifecycleOwner.current
-    val context = LocalContext.current
-    val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
-
-    val previewView = remember { PreviewView(context) }
-
-    val backgroundExecutor: ExecutorService = remember {
-        Executors.newSingleThreadExecutor()
-    }
-
-    val executor = ContextCompat.getMainExecutor(context)
-
-    LaunchedEffect(cameraLens) {
-        cameraProviderFuture.addListener({
-            val cameraProvider = cameraProviderFuture.get()
-
-            val preview = androidx.camera.core.Preview.Builder()
-                .setResolutionSelector(
-                    ResolutionSelector.Builder()
-                        .setAspectRatioStrategy(AspectRatioStrategy.RATIO_16_9_FALLBACK_AUTO_STRATEGY)
-                        .setHighResolutionEnabledFlag(HIGH_RESOLUTION_FLAG_OFF)
-                        .build()
-                )
-                .setTargetRotation(previewView.display.rotation)
-                .build()
-                .also {
-                    it.setSurfaceProvider(previewView.surfaceProvider)
-                }
-
-
-            val imageAnalysis: ImageAnalysis = ImageAnalysis.Builder()
-                .setResolutionSelector(
-                    ResolutionSelector.Builder()
-                        .setResolutionStrategy(
-                            ResolutionStrategy(
-                                Size(640, 360),
-                                FALLBACK_RULE_CLOSEST_HIGHER
-                            ),
-                        )
-                        .setHighResolutionEnabledFlag(HIGH_RESOLUTION_FLAG_OFF)
-                        .build()
-                )
-                .setTargetRotation(previewView.display.rotation)
-                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-                .setOutputImageFormat(OUTPUT_IMAGE_FORMAT_RGBA_8888)
-                .build()
-                .also {
-                    it.setAnalyzer(backgroundExecutor) { image ->
-                        val bitmapBuffer = Bitmap.createBitmap(
-                            image.width,
-                            image.height,
-                            Bitmap.Config.ARGB_8888
-                        )
-                        image.use { bitmapBuffer.copyPixelsFromBuffer(image.planes[0].buffer) }
-                        val imageRotation = image.imageInfo.rotationDegrees
-                        objectDetectorHelper.detect(bitmapBuffer, imageRotation)
-                    }
-                }
-
-            val cameraSelector = CameraSelector.Builder()
-                .requireLensFacing(cameraLens)
-                .build()
-
-            cameraProvider.unbindAll()
-            cameraProvider.bindToLifecycle(
-                lifecycleOwner,
-                cameraSelector,
-                preview, imageAnalysis
-            )
-        }, executor)
-    }
-
-
-    Box(Modifier.fillMaxSize()) {
-        AndroidView(
-            modifier = modifier,
-            factory = { ctx ->
-                previewView
-            },
-        )
-    }
-}
 
 @Preview(showBackground = true)
 @Composable
