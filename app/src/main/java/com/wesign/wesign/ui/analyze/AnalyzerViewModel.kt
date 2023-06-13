@@ -1,6 +1,7 @@
 package com.wesign.wesign.ui.analyze
 
 import androidx.lifecycle.ViewModel
+import com.wesign.wesign.core.SignLanguageModels
 import com.wesign.wesign.utils.ObjectDetectorHelper
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,10 +31,18 @@ class AnalyzerViewModel @Inject constructor() : ViewModel() {
         }
     }
 
-    fun setObjectDetectorHelper(listener: ObjectDetectorHelper) {
+    fun setSignModel(model: SignLanguageModels) {
         _uiState.update {
             it.copy(
-                objectDetectorHelper = listener
+                selectedSignModel = model
+            )
+        }
+    }
+
+    fun setObjectDetectorHelper(helper: ObjectDetectorHelper?) {
+        _uiState.update {
+            it.copy(
+                objectDetectorHelper = helper
             )
         }
     }

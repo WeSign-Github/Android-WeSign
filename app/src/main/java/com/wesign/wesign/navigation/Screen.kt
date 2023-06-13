@@ -13,6 +13,7 @@ sealed class Screen(val route: String) {
     }
 
     object AnalyzerCamera : Screen("analyze")
+    object AnalyzerSetting : Screen("analyze/setting")
 
 
     object TextToSignPick : Screen("text-to-sign/pick")

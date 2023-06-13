@@ -17,7 +17,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.navigation.NavBackStackEntry
@@ -31,9 +30,9 @@ import com.wesign.wesign.core.SessionManager
 import com.wesign.wesign.domain.WeSignRepository
 import com.wesign.wesign.navigation.NestedGraph
 import com.wesign.wesign.navigation.Screen
+import com.wesign.wesign.navigation.graph.buildAnalyzerGraph
 import com.wesign.wesign.navigation.graph.buildLearningNavGraph
 import com.wesign.wesign.navigation.graph.buildTextToSignNavGraph
-import com.wesign.wesign.ui.analyze.AnalyzerRoute
 import com.wesign.wesign.ui.home.HomeRoute
 import com.wesign.wesign.ui.login.LoginRoute
 import com.wesign.wesign.ui.profile.ProfileRoute
@@ -65,8 +64,8 @@ class MainActivity : ComponentActivity() {
         setContent {
 
             val scope = rememberCoroutineScope()
-            LaunchedEffect(Unit) {
 
+            LaunchedEffect(Unit) {
                 firebaseAuth.addAuthStateListener {
                     scope.launch {
                         Log.d("MainActivity", "Auth State Trigger...")
@@ -101,9 +100,8 @@ class MainActivity : ComponentActivity() {
 
             WeSignTheme {
                 val navController = rememberNavController()
-                val snackbarHostState = remember { SnackbarHostState() }
                 var homeAsDefault by rememberSaveable { mutableStateOf(false) }
-                val localContext = LocalContext.current
+                val snackbarHostState = remember { SnackbarHostState() }
 
                 runBlocking {
                     homeAsDefault = !sessionManager.getToken().first().isNullOrEmpty()
@@ -166,7 +164,7 @@ class MainActivity : ComponentActivity() {
                         composable(Screen.Home.route) {
                             HomeRoute(
                                 onAnalyzePressed = {
-                                    navController.navigate(Screen.AnalyzerCamera.route)
+                                    navController.navigate(NestedGraph.AnalyzerFeature.nestedRoute)
                                 },
                                 onProfilePressed = {
                                     navController.navigate(Screen.Profile.route)
@@ -180,21 +178,16 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
+                        buildAnalyzerGraph(
+                            navController = navController,
+                            onNotGrantedPermission = {
+                                scope.launch {
+                                    snackbarHostState.showSnackbar("Need Camera Permission")
+                                }
+                            },
+                        )
                         buildLearningNavGraph(navController = navController)
                         buildTextToSignNavGraph(navController = navController)
-
-                        composable(Screen.AnalyzerCamera.route) {
-                            AnalyzerRoute(
-                                onNavigateUp = {
-                                    navController.navigateUp()
-                                },
-                                onNotGrantedPermission = {
-                                    scope.launch {
-                                        snackbarHostState.showSnackbar("Need Camera Permission")
-                                    }
-                                }
-                            )
-                        }
 
                         composable(Screen.Profile.route) {
                             ProfileRoute(

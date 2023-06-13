@@ -7,11 +7,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.BottomSheetScaffold
@@ -53,6 +55,7 @@ internal fun AnalyzerRoute(
     onNavigateUp: () -> Unit,
     onNotGrantedPermission: () -> Unit = {},
     onNotAvailable: () -> Unit = {},
+    onSettingPressed: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -82,7 +85,8 @@ internal fun AnalyzerRoute(
             uiState = uiState,
             onNavigateUp = onNavigateUp,
             onAddDetectionHistory = viewModel::addHistory,
-            onInitHelper = viewModel::setObjectDetectorHelper
+            onInitHelper = viewModel::setObjectDetectorHelper,
+            onSettingPressed = onSettingPressed
         )
     }
 }
@@ -95,6 +99,7 @@ fun AnalyzerScreen(
     onAddDetectionHistory: (Detection) -> Unit = {},
     onNavigateUp: () -> Unit = { },
     onInitHelper: (ObjectDetectorHelper) -> Unit = {},
+    onSettingPressed: () -> Unit = {}
 ) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -155,15 +160,33 @@ fun AnalyzerScreen(
                     if (uiState.detectionHistory.isNotEmpty()) {
                         val reversedList = uiState.detectionHistory.reversed()
                         val latestDetection = reversedList.first()
-                        Text(
-                            latestDetection.categories[0].label.capitalize(Locale.current),
+                        Row(
                             Modifier
                                 .fillMaxWidth()
                                 .wrapContentHeight()
                                 .padding(vertical = 3.dp),
-                            style = MaterialTheme.typography.headlineMedium,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
+                            Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                latestDetection.categories[0].label.capitalize(Locale.current),
+                                Modifier
+                                    .weight(1f)
+                                    .wrapContentHeight()
+                                    .padding(vertical = 3.dp),
+                                style = MaterialTheme.typography.headlineMedium,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+
+                            Text(
+                                uiState.selectedSignModel.name,
+                                Modifier
+                                    .wrapContentWidth()
+                                    .wrapContentHeight()
+                                    .padding(vertical = 3.dp),
+                                style = MaterialTheme.typography.headlineSmall,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
 
                         LazyColumn(
                             Modifier
@@ -200,7 +223,8 @@ fun AnalyzerScreen(
                     Log.d("Analyzer", "Init ObjectDetectorHelper")
                     val objectHelper = ObjectDetectorHelper(
                         context = context,
-                        objectDetectorListener = listener
+                        objectDetectorListener = listener,
+                        signModel = uiState.selectedSignModel
                     )
                     onInitHelper(objectHelper)
                     return@run objectHelper
@@ -212,7 +236,8 @@ fun AnalyzerScreen(
                 onSwitchCamera = {
                     lensFacing =
                         if (lensFacing == CameraSelector.LENS_FACING_BACK) CameraSelector.LENS_FACING_FRONT else CameraSelector.LENS_FACING_BACK
-                }
+                },
+                onSettingPressed = onSettingPressed
             )
         }
     }
