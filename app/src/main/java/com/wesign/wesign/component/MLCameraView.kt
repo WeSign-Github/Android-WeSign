@@ -83,7 +83,11 @@ fun MLCameraView(
                             image.height,
                             Bitmap.Config.ARGB_8888
                         )
-                        image.use { bitmapBuffer.copyPixelsFromBuffer(image.planes[0].buffer) }
+                        try {
+                            image.use { bitmapBuffer.copyPixelsFromBuffer(image.planes[0].buffer) }
+                        } catch (ex: RuntimeException) {
+
+                        }
                         val imageRotation = image.imageInfo.rotationDegrees
                         objectDetectorHelper.detect(bitmapBuffer, imageRotation)
                     }

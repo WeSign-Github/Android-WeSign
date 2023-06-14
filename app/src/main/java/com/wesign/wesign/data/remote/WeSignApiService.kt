@@ -1,8 +1,9 @@
 package com.wesign.wesign.data.remote
 
+import com.wesign.wesign.data.entity.CompleteLessonResponse
 import com.wesign.wesign.data.entity.CourseDetailResponse
 import com.wesign.wesign.data.entity.CourseResponse
-import com.wesign.wesign.data.entity.Lesson
+import com.wesign.wesign.data.entity.LessonResponse
 import com.wesign.wesign.data.entity.SelfUserResponse
 import com.wesign.wesign.data.entity.TextToSignResponse
 import com.wesign.wesign.data.entity.WeSignRegisterResponse
@@ -13,8 +14,6 @@ import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
-
-typealias LessonResponse = Lesson
 
 interface WeSignApiService : BaseApiService {
 
@@ -27,8 +26,10 @@ interface WeSignApiService : BaseApiService {
     @GET("/api/courses/{id}")
     suspend fun getCourseDetail(@Path("id") id: Int): CourseDetailResponse
 
-    @GET("/api/lesson/{id}")
+    @GET("/api/lessons/{id}")
     suspend fun getLesson(@Path("id") id: Int): LessonResponse
+    @POST("/api/lessons/{id}/complete")
+    suspend fun completeLesson(@Path("id") id: Int): CompleteLessonResponse
 
     @GET("/api/text-to-sign")
     suspend fun getTextToSign(@Query("text") text: String = ""): TextToSignResponse

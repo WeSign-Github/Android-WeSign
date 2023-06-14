@@ -1,8 +1,10 @@
 package com.wesign.wesign.data
 
 import android.util.Log
+import com.wesign.wesign.data.entity.CompleteLessonResponse
 import com.wesign.wesign.data.entity.CourseDetailResponse
 import com.wesign.wesign.data.entity.CourseResponse
+import com.wesign.wesign.data.entity.LessonResponse
 import com.wesign.wesign.data.entity.SelfUserResponse
 import com.wesign.wesign.data.entity.TextToSignResponse
 import com.wesign.wesign.data.entity.WeSignRegisterResponse
@@ -46,7 +48,6 @@ class WeSignRepositoryImpl @Inject constructor(
         emit(Resource.Loading)
         try {
             val result = apiService.getCourses()
-            delay(3000) // TODO Delete this later
             emit(Resource.Success(result))
         } catch (ex: Exception) {
             emit(Resource.Error(ex))
@@ -58,7 +59,28 @@ class WeSignRepositoryImpl @Inject constructor(
         emit(Resource.Loading)
         try {
             val result = apiService.getCourseDetail(id)
-            delay(3000) // TODO Delete this later
+            emit(Resource.Success(result))
+        } catch (ex: Exception) {
+            emit(Resource.Error(ex))
+            Log.e("WeSignRepo", ex.message.toString())
+        }
+    }
+
+    override fun getLesson(id: Int): Flow<Resource<LessonResponse>> = flow {
+        emit(Resource.Loading)
+        try {
+            val result = apiService.getLesson(id)
+            emit(Resource.Success(result))
+        } catch (ex: Exception) {
+            emit(Resource.Error(ex))
+            Log.e("WeSignRepo", ex.message.toString())
+        }
+    }
+
+    override fun completeLesson(id: Int): Flow<Resource<CompleteLessonResponse>> = flow {
+        emit(Resource.Loading)
+        try {
+            val result = apiService.completeLesson(id)
             emit(Resource.Success(result))
         } catch (ex: Exception) {
             emit(Resource.Error(ex))

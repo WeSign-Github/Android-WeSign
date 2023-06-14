@@ -7,6 +7,8 @@ data class CourseDetail(
     val id: Int,
     @SerializedName("title")
     val title: String,
+    @SerializedName("language")
+    val language: String,
     @SerializedName("description")
     val description: String,
     @SerializedName("createdAt")

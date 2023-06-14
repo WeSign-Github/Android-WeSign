@@ -163,10 +163,10 @@ private fun LearningScreenPreviewWithCourse() {
         LearningScreen(
             uiState = LearningState(
                 courseList = listOf(
-                    Course(1, "Alphabet 101", "Lorem Ipsum", "", ""),
-                    Course(2, "Alphabet 101", "Lorem Ipsum", "", ""),
-                    Course(3, "Alphabet 101", "Lorem Ipsum", "", ""),
-                    Course(4, "Alphabet 101", "Lorem Ipsum", "", ""),
+                    Course(1, "Alphabet 101", "Lorem Ipsum", "", "",""),
+                    Course(2, "Alphabet 101", "Lorem Ipsum", "", "",""),
+                    Course(3, "Alphabet 101", "Lorem Ipsum", "", "",""),
+                    Course(4, "Alphabet 101", "Lorem Ipsum", "", "",""),
                 )
             )
         )

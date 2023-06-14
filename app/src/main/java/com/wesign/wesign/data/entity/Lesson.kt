@@ -9,6 +9,10 @@ data class Lesson(
     val courseId: Int,
     @SerializedName("title")
     val title: String,
+    @SerializedName("thumbnail")
+    val thumbnail: String,
+    @SerializedName("completed")
+    val completed: Boolean,
     @SerializedName("createdAt")
     val createdAt: String,
     @SerializedName("updatedAt")

@@ -33,7 +33,7 @@ fun CourseDetailRoute(
     viewModel: CourseDetailViewModel = hiltViewModel(),
     idCourse: Int = -1,
     onNavigateBack: () -> Unit,
-    onStartLearning: () -> Unit
+    onStartLearning: (startLessonId: Int) -> Unit
 ) {
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -42,7 +42,15 @@ fun CourseDetailRoute(
         viewModel.getCourse(idCourse)
     }
 
-    CourseDetailScreen(uiState, onNavigateBack = onNavigateBack, onStartLearning = onStartLearning)
+    CourseDetailScreen(
+        uiState,
+        onNavigateBack = onNavigateBack,
+        onStartLearning = {
+            val firstUncompletedLessonId =
+                uiState.course.lessons.filter { item -> !item.completed }[0].id
+            onStartLearning(firstUncompletedLessonId)
+        }
+    )
 }
 
 @Composable
@@ -122,7 +130,12 @@ private fun CourseDetailScreenPreview() {
         CourseDetailScreen(
             uiState = CourseDetailState(
                 course = CourseDetail(
-                    -1, "Alphabets 101", "Mempelajari alphabets A-Z dalam bahasda tangan", "", "",
+                    -1,
+                    "Alphabets 101",
+                    "Mempelajari alphabets A-Z dalam bahasda tangan",
+                    "",
+                    "",
+                    "",
                     emptyList()
                 )
             )
@@ -138,7 +151,12 @@ private fun CourseDetailScreenPreviewLoading() {
             uiState = CourseDetailState(
                 isLoading = true,
                 course = CourseDetail(
-                    -1, "Alphabets 101", "Mempelajari alphabets A-Z dalam bahasda tangan", "", "",
+                    -1,
+                    "Alphabets 101",
+                    "Mempelajari alphabets A-Z dalam bahasda tangan",
+                    "",
+                    "",
+                    "",
                     emptyList()
                 )
             )

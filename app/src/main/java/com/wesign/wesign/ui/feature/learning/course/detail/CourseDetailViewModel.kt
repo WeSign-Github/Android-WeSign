@@ -23,6 +23,12 @@ class CourseDetailViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(CourseDetailState())
     val uiState: StateFlow<CourseDetailState> = _uiState.asStateFlow()
 
+    fun getPercentageProgress(): Int {
+        val totalLesson = uiState.value.course.lessons.size
+        val completedLesson = uiState.value.course.lessons.filter { it.completed }.size
+        return (completedLesson / totalLesson) * 100
+    }
+
     fun getCourse(id: Int) {
         weSignRepository.getDetailCourses(id).onEach { result ->
             when (result) {
