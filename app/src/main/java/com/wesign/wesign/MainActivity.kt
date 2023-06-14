@@ -174,6 +174,10 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onTextToSignPressed = {
                                     navController.navigate(NestedGraph.TextToSignFeature.nestedRoute)
+                                },
+                                onProfileEmpty = {
+                                    navController.navigate(Screen.RegisterInformation.route) {
+                                    }
                                 }
                             )
                         }

@@ -26,24 +26,57 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil.compose.AsyncImage
+import com.google.accompanist.placeholder.PlaceholderHighlight
+import com.google.accompanist.placeholder.material.placeholder
+import com.google.accompanist.placeholder.material.shimmer
 import com.wesign.wesign.R
+import com.wesign.wesign.data.entity.SelfUserResponse
 import com.wesign.wesign.ui.theme.LocalExtendedColorScheme
 import com.wesign.wesign.ui.theme.WeSignTheme
 
 @Composable
 internal fun HomeRoute(
+    viewModel: HomeViewModel = hiltViewModel(),
     onAnalyzePressed: () -> Unit,
     onLearningPressed: () -> Unit,
     onProfilePressed: () -> Unit,
-    onTextToSignPressed: () -> Unit
+    onTextToSignPressed: () -> Unit,
+    onProfileEmpty: () -> Unit
 ) {
+
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(Unit) {
+        if (uiState.isProfileEmpty) {
+            onProfileEmpty()
+        }
+    }
+
+    LaunchedEffect(uiState.isLoading) {
+        if (!uiState.isLoading) {
+            if (uiState.profile == null) {
+                viewModel.getProfile()
+            }
+        }
+    }
+
     HomeScreen(
+        uiState = uiState,
         onAnalyzePressed = onAnalyzePressed,
         onProfilePressed = onProfilePressed,
         onLearningPressed = onLearningPressed,
@@ -53,6 +86,7 @@ internal fun HomeRoute(
 
 @Composable
 fun HomeScreen(
+    uiState: HomeState = HomeState(),
     onAnalyzePressed: () -> Unit = {},
     onLearningPressed: () -> Unit = {},
     onProfilePressed: () -> Unit = {},
@@ -66,7 +100,11 @@ fun HomeScreen(
                 .padding(horizontal = 25.dp),
         ) {
             Spacer(modifier = Modifier.height(15.dp))
-            HomeTopBar(onProfilePressed)
+            HomeTopBar(
+                onProfilePressed,
+                isLoading = uiState.isLoading,
+                profile = uiState.profile
+            )
             Text(
                 "Your best sign language assistant",
                 Modifier.padding(vertical = 35.dp),
@@ -183,8 +221,15 @@ private fun CardButton(
 
 @Composable
 private fun HomeTopBar(
-    onProfilePressed: () -> Unit
+    onProfilePressed: () -> Unit,
+    profile: SelfUserResponse.User?,
+    isLoading: Boolean
 ) {
+
+    var isImageLoading by remember {
+        mutableStateOf(false)
+    }
+
     Box(
         Modifier
             .fillMaxWidth()
@@ -192,13 +237,19 @@ private fun HomeTopBar(
     ) {
         Row(Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
             Column() {
-                Row() {
+                Row(
+                    Modifier.placeholder(
+                        visible = isLoading,
+                        highlight = PlaceholderHighlight.shimmer(),
+                    )
+                ) {
                     Text(
                         text = "Hello, ",
-                        style = MaterialTheme.typography.titleMedium
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        text = "Random Stranger!",
+                        text = "${profile?.displayName}",
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.tertiary
                     )
@@ -206,7 +257,12 @@ private fun HomeTopBar(
 
                 Text(
                     text = "Welcome Back",
-                    style = MaterialTheme.typography.labelSmall
+                    Modifier.placeholder(
+                        visible = isLoading,
+                        highlight = PlaceholderHighlight.shimmer(),
+                    ),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
             Spacer(Modifier.weight(1f))
@@ -218,15 +274,46 @@ private fun HomeTopBar(
                     .background(
                         LocalExtendedColorScheme.current.surfaceContainerLow,
                         shape = CircleShape
+                    )
+                    .placeholder(
+                        visible = isLoading,
+                        highlight = PlaceholderHighlight.shimmer(),
                     ),
             ) {
-                Image(
-                    Icons.Filled.AccountCircle,
-                    contentDescription = "Profile",
-                    Modifier
-                        .padding(8.dp)
-                        .fillMaxSize()
-                )
+                profile?.let {
+                    if (it.avatar.isNotEmpty()) {
+                        AsyncImage(
+                            model = it.avatar,
+                            contentDescription = "Profile",
+                            modifier = Modifier
+                                .padding(8.dp)
+                                .fillMaxSize()
+                                .clip(CircleShape),
+                            onLoading = {
+                                isImageLoading = true
+                            },
+                            onSuccess = {
+                                isImageLoading = false
+                            }
+                        )
+                    } else {
+                        Image(
+                            Icons.Filled.AccountCircle,
+                            contentDescription = "Profile",
+                            Modifier
+                                .padding(8.dp)
+                                .fillMaxSize()
+                        )
+                    }
+                } ?: run {
+                    Image(
+                        Icons.Filled.AccountCircle,
+                        contentDescription = "Profile",
+                        Modifier
+                            .padding(8.dp)
+                            .fillMaxSize()
+                    )
+                }
             }
 
         }
