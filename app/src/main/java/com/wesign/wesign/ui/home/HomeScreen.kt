@@ -260,7 +260,7 @@ private fun HomeTopBar(
                     Modifier.placeholder(
                         visible = isLoading,
                         highlight = PlaceholderHighlight.shimmer(),
-                    ),
+                    ).padding(vertical = if(isLoading) 3.dp else 0.dp),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -278,6 +278,7 @@ private fun HomeTopBar(
                     .placeholder(
                         visible = isLoading,
                         highlight = PlaceholderHighlight.shimmer(),
+                        shape = CircleShape
                     ),
             ) {
                 profile?.let {
