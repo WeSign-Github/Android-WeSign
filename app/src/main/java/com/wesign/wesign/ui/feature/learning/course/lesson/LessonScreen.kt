@@ -157,11 +157,7 @@ fun LessonScreen(
                             onTryPressed = { id, challenge ->
                                 onTryPressed(challenge)
                             },
-                            isCompleted = try {
-                                sharedState.course.lessons.first { it.id == lessonId }.completed
-                            } catch (ex: NoSuchElementException) {
-                                false
-                            }
+                            isCompleted = true
                         )
                     }
 
