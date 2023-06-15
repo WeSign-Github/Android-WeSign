@@ -6,10 +6,21 @@ The model files are downloaded via Gradle scripts when you build and run the app
 There are 3 Main Features:
 - Analyzer
 - TextToSign
-- Learning:
+- Learning
 
-### Screenshot
 
+## Libraries Used
+- Jetpack Compose for UI
+- CameraX for Camera and Image Analysis Use case
+- Dagger Hilt for Dependency Injection
+- Tensorflow Lite for Loading `.tflite` Models into android app
+- Firebase for Authentication
+
+- Retrofit
+- Material3
+- Datastore
+- Accompanist
+- Coli Compose
 
 ## Build Project
 
