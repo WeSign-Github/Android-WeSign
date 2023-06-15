@@ -1,0 +1,19 @@
+task downloadModelFile(type: Download) {
+    src 'https://storage.googleapis.com/wesign-bucket/metadata-bisindo-new.tflite'
+    dest project.ext.ASSET_DIR + '/metadata-bisindo-new.tflite'
+    overwrite false
+}
+
+task downloadModelFile0(type: Download) {
+    src 'https://storage.googleapis.com/wesign-bucket/metadata-bisindo.tflite'
+    dest project.ext.ASSET_DIR + '/metadata-bisindo.tflite'
+    overwrite false
+}
+
+task downloadModelFile1(type: Download) {
+    src 'https://storage.googleapis.com/wesign-bucket/metadata-sibi-all.tflite'
+    dest project.ext.ASSET_DIR + '/metadata-sibi-all.tflite'
+    overwrite false
+}
+
+preBuild.dependsOn downloadModelFile, downloadModelFile0, downloadModelFile1
