@@ -8,4 +8,4 @@ const val AUTH_TOKEN = "AUTH_TOKEN"
 
 const val IDENTITY_PROVIDER = "firebase"
 
-const val TIMEOUT = 5L
+const val TIMEOUT = 10L
