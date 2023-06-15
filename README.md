@@ -43,4 +43,4 @@ or you can download and extract it
 2. Open Android studio and open project and target it to cloned/extracted folder location.
 
 ### Model
-Downloading model are automatically handled by download.gradle when building project. After building project you can find 2 `.tfLite` model at `app\src\main\assets` 
+Downloading model are automatically handled by [download.gradle](./app/download.gradle) when building project. After building project you can find 2 `.tfLite` model at `app\src\main\assets` 

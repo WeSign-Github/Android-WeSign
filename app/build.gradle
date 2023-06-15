@@ -5,6 +5,7 @@ plugins {
     id 'kotlin-kapt'
     id 'com.google.dagger.hilt.android'
     id 'com.google.firebase.crashlytics'
+    id 'de.undercouch.download'
 }
 
 android {
@@ -58,6 +59,11 @@ android {
         }
     }
 }
+
+project.ext.ASSET_DIR = projectDir.toString() + '/src/main/assets'
+project.ext.TEST_ASSETS_DIR = projectDir.toString() + '/src/androidTest/assets'
+
+apply from: 'download.gradle'
 
 dependencies {
     def nav_version = "2.5.3"
