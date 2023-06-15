@@ -63,6 +63,7 @@ fun LessonRoute(
 
     LaunchedEffect(Unit) {
         viewModel.getLesson(lessonId)
+        courseDetailViewModel.getPercentageProgress()
     }
 
     LessonScreen(
@@ -88,7 +89,7 @@ fun LessonScreen(
     lessonId: Int = -1,
     onNavigateBack: () -> Unit = {},
     onChangeLesson: (Int?) -> Unit = {},
-    onTryPressed: (String) -> Unit = {}
+    onTryPressed: (String) -> Unit = {},
 ) {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -112,6 +113,8 @@ fun LessonScreen(
                         LessonDrawerContent(
                             listLesson = sharedState.course.lessons,
                             currentLesson = uiState.lesson,
+                            courseName = sharedState.course.title,
+                            progressPercent = sharedState.progressPercentage,
                             onLessonClicked = { selectedLesson ->
                                 if (drawerState.isOpen) scope.launch { drawerState.close() }
                                 onChangeLesson(selectedLesson.id)

@@ -23,10 +23,14 @@ class CourseDetailViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(CourseDetailState())
     val uiState: StateFlow<CourseDetailState> = _uiState.asStateFlow()
 
-    fun getPercentageProgress(): Int {
+    fun getPercentageProgress() {
         val totalLesson = uiState.value.course.lessons.size
         val completedLesson = uiState.value.course.lessons.filter { it.completed }.size
-        return (completedLesson / totalLesson) * 100
+        _uiState.update {
+            it.copy(
+                progressPercentage = (completedLesson / totalLesson) * 100
+            )
+        }
     }
 
     fun getCourse(id: Int) {

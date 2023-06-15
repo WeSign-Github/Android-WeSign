@@ -38,6 +38,7 @@ import com.wesign.wesign.ui.theme.WeSignTheme
 fun LessonDrawerContent(
     listLesson: List<Lesson> = listOf(),
     currentLesson: LessonResponse.Data,
+    courseName: String,
     progressPercent: Int = 0,
     onLessonClicked: (Lesson) -> Unit = {},
 ) {
@@ -61,12 +62,12 @@ fun LessonDrawerContent(
 
                 Spacer(modifier = Modifier.weight(1f))
                 Text(
-                    "101 Alphabet",
+                    "${courseName}",
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.inverseOnSurface
                 )
                 LinearProgressIndicator(
-                    progress = 0.5f,
+                    progress = (progressPercent/100).toFloat(),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 5.dp),
@@ -74,7 +75,7 @@ fun LessonDrawerContent(
                     color = MaterialTheme.colorScheme.primary,
                 )
                 Text(
-                    "20%",
+                    "${progressPercent}%",
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.inverseOnSurface
                 )
@@ -138,6 +139,7 @@ fun ListLessonScreenPreview() {
                 Lesson(3, 1, "C", "", false, "", ""),
                 Lesson(4, 1, "D", "", false, "", ""),
             ),
+            courseName = "101 Alphabet SIBI",
             currentLesson = LessonResponse.Data(3, 1, "C", "", "false", "", 0),
         )
     }
