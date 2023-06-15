@@ -20,7 +20,7 @@ There are 3 Main Features:
 - Material3
 - Datastore
 - Accompanist
-- Coli Compose
+- Coil Compose
 
 ## Build Project
 
