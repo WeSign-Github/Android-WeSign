@@ -30,11 +30,11 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
 
-            buildConfigField("String", "API_WESIGN_BASEURL", '"https://api-wesign-jzcjkn2yka-et.a.run.app"')
+            buildConfigField("String", "API_WESIGN_BASEURL", '"https://wesign-backend-jzcjkn2yka-et.a.run.app/"')
         }
 
         debug {
-            buildConfigField("String", "API_WESIGN_BASEURL", '"https://api-wesign-jzcjkn2yka-et.a.run.app"')
+            buildConfigField("String", "API_WESIGN_BASEURL", '"https://wesign-backend-jzcjkn2yka-et.a.run.app/"')
         }
     }
     compileOptions {

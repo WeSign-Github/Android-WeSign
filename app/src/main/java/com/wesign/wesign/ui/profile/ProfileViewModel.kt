@@ -27,7 +27,7 @@ class ProfileViewModel @Inject constructor(
     }
 
 
-    private fun getUserProfile() {
+    fun getUserProfile() {
         weSignRepository.getCurrentUser().onEach { result ->
             when (result) {
                 is Resource.Success -> {

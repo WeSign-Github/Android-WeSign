@@ -11,8 +11,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Settings
@@ -28,6 +28,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -35,6 +36,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil.compose.AsyncImage
 import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.material.placeholder
 import com.google.accompanist.placeholder.material.shimmer
@@ -53,6 +55,14 @@ fun ProfileRoute(
     LaunchedEffect(uiState) {
         if (uiState.isUserInfoEmpty) {
             onUserEmpty()
+        }
+    }
+
+    LaunchedEffect(uiState.isLoading) {
+        if (!uiState.isLoading) {
+            if (uiState.user == null) {
+                viewModel.getUserProfile()
+            }
         }
     }
 
@@ -94,8 +104,8 @@ fun ProfileScreen(
                 Arrangement.Center,
                 Alignment.CenterHorizontally
             ) {
-                Image(
-                    Icons.Filled.AccountCircle,
+                AsyncImage(
+                    uiState.user?.avatar,
                     contentDescription = "Profile Image",
                     Modifier
                         .weight(1f)
@@ -103,7 +113,8 @@ fun ProfileScreen(
                         .placeholder(
                             visible = uiState.isLoading,
                             highlight = PlaceholderHighlight.shimmer(),
-                        ),
+                        )
+                        .clip(CircleShape),
                 )
                 Text(
                     "${uiState.user?.firstName} ${uiState.user?.lastName}",
