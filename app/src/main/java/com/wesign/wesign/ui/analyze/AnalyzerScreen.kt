@@ -128,6 +128,7 @@ fun AnalyzerScreen(
                     }
 
                     for (detect in results) {
+                        if(detect.categories[0].score <= 0.85) return@let
                         onAddDetectionHistory(detect)
                         if (firstTime) {
                             scope.launch {

@@ -50,7 +50,6 @@ fun MLCameraView(
                 .setResolutionSelector(
                     ResolutionSelector.Builder()
                         .setAspectRatioStrategy(AspectRatioStrategy.RATIO_16_9_FALLBACK_AUTO_STRATEGY)
-                        .setHighResolutionEnabledFlag(ResolutionSelector.HIGH_RESOLUTION_FLAG_OFF)
                         .build()
                 )
                 .setTargetRotation(previewView.display.rotation)
@@ -69,7 +68,6 @@ fun MLCameraView(
                                 ResolutionStrategy.FALLBACK_RULE_CLOSEST_HIGHER
                             ),
                         )
-                        .setHighResolutionEnabledFlag(ResolutionSelector.HIGH_RESOLUTION_FLAG_OFF)
                         .build()
                 )
                 .setTargetRotation(previewView.display.rotation)
