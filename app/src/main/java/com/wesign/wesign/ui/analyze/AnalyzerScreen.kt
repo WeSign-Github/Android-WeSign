@@ -127,9 +127,25 @@ fun AnalyzerScreen(
                         return@let
                     }
 
+                    val detectionUntilValidThreshold = 10
+                    val accuracyThreshold = 0.95
+
+                    var counter = 0
+                    var prevCategories = ""
+
                     for (detect in results) {
-                        if(detect.categories[0].score <= 0.85) return@let
+                        val categories = detect.categories[0]
+                        if(categories.score <= accuracyThreshold) return@let
+
+                        if(prevCategories != categories.label) counter = 0
+
+                        prevCategories = categories.label
+                        counter++
+
+                        if(counter >= detectionUntilValidThreshold) return@let
+
                         onAddDetectionHistory(detect)
+
                         if (firstTime) {
                             scope.launch {
                                 bottomSheetScaffoldState.bottomSheetState.expand()
