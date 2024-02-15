@@ -19,12 +19,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.material.placeholder
 import com.google.accompanist.placeholder.material.shimmer
 import com.wesign.wesign.data.entity.LessonResponse
+import com.wesign.wesign.ui.theme.WeSignTheme
 
 @Composable
 fun LessonContent(
@@ -111,5 +113,17 @@ fun LessonContent(
             }
         }
 
+    }
+}
+
+@Preview(showSystemUi = true)
+@Composable
+fun LessonContentPreview() {
+    WeSignTheme() {
+        LessonContent(
+            lesson = LessonResponse.Data(0, 1, "Test", "", "", "", 2),
+            onNextPressed = {},
+            onTryPressed = { _,_ -> }
+        )
     }
 }

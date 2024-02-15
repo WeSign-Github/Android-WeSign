@@ -22,8 +22,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -39,9 +39,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.PermissionsRequired
-import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.wesign.wesign.component.MLCameraView
+import com.wesign.wesign.component.PermissionView
 import com.wesign.wesign.ui.analyze.common.AnalyzerTopBar
 import com.wesign.wesign.ui.theme.WeSignTheme
 import com.wesign.wesign.utils.ObjectDetectorHelper
@@ -63,24 +62,7 @@ internal fun AnalyzerRoute(
         Manifest.permission.CAMERA,
     )
 
-    val permissionState =
-        rememberMultiplePermissionsState(permissions = PERMISSION)
-
-    LaunchedEffect(Unit) {
-        permissionState.launchMultiplePermissionRequest()
-    }
-
-    PermissionsRequired(
-        multiplePermissionsState = permissionState,
-        permissionsNotGrantedContent = {
-            Log.d("CameraML", "Not Granted")
-            onNotGrantedPermission()
-        },
-        permissionsNotAvailableContent = {
-            Log.d("CameraML", "Not Available")
-            onNotAvailable()
-        },
-    ) {
+    PermissionView(content = {
         AnalyzerScreen(
             uiState = uiState,
             onNavigateUp = onNavigateUp,
@@ -88,7 +70,14 @@ internal fun AnalyzerRoute(
             onInitHelper = viewModel::setObjectDetectorHelper,
             onSettingPressed = onSettingPressed
         )
-    }
+    }, permission = PERMISSION, onNotGrantedPermission = {
+        Log.d("CameraML", "Not Granted")
+        onNotGrantedPermission()
+    }, onNotAvailable = {
+        Log.d("CameraML", "Not Available")
+        onNotAvailable()
+    })
+
 }
 
 
@@ -109,16 +98,24 @@ fun AnalyzerScreen(
 
     val bottomSheetScaffoldState = rememberBottomSheetScaffoldState()
 
+    val detectionUntilValidThreshold = 3
+    val accuracyThreshold = 0.95
+
+    var counter by remember {
+        mutableIntStateOf(0)
+    }
+
+    var prevCategories by remember {
+        mutableStateOf("")
+    }
+
     val listener = object : ObjectDetectorHelper.DetectorListener {
         override fun onError(error: String) {
             Log.d("Analyzer", "Error: $error")
         }
 
         override fun onResults(
-            results: MutableList<Detection>?,
-            inferenceTime: Long,
-            imageHeight: Int,
-            imageWidth: Int
+            results: MutableList<Detection>?, inferenceTime: Long, imageHeight: Int, imageWidth: Int
         ) {
             scope.launch {
                 Log.d("Analyzer", "inferenceTime: $inferenceTime")
@@ -127,22 +124,16 @@ fun AnalyzerScreen(
                         return@let
                     }
 
-                    val detectionUntilValidThreshold = 10
-                    val accuracyThreshold = 0.95
-
-                    var counter = 0
-                    var prevCategories = ""
-
                     for (detect in results) {
                         val categories = detect.categories[0]
-                        if(categories.score <= accuracyThreshold) return@let
+                        if (categories.score <= accuracyThreshold) return@let
 
-                        if(prevCategories != categories.label) counter = 0
+                        if (prevCategories != categories.label) counter = 0
 
                         prevCategories = categories.label
                         counter++
 
-                        if(counter >= detectionUntilValidThreshold) return@let
+                        if (counter <= detectionUntilValidThreshold) return@let
 
                         onAddDetectionHistory(detect)
 
@@ -233,8 +224,7 @@ fun AnalyzerScreen(
                 .background(Color.Black)
                 .fillMaxSize(),
         ) {
-            MLCameraView(
-                modifier = Modifier.matchParentSize(),
+            MLCameraView(modifier = Modifier.matchParentSize(),
                 cameraLens = lensFacing,
                 objectDetectorHelper = uiState.objectDetectorHelper ?: run {
                     Log.d("Analyzer", "Init ObjectDetectorHelper")
@@ -245,16 +235,13 @@ fun AnalyzerScreen(
                     )
                     onInitHelper(objectHelper)
                     return@run objectHelper
-                }
-            )
+                })
 
             AnalyzerTopBar(
-                onNavigateUp = onNavigateUp,
-                onSwitchCamera = {
+                onNavigateUp = onNavigateUp, onSwitchCamera = {
                     lensFacing =
                         if (lensFacing == CameraSelector.LENS_FACING_BACK) CameraSelector.LENS_FACING_FRONT else CameraSelector.LENS_FACING_BACK
-                },
-                onSettingPressed = onSettingPressed
+                }, onSettingPressed = onSettingPressed
             )
         }
     }

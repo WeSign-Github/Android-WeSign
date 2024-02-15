@@ -2,6 +2,8 @@ package com.wesign.wesign.ui.feature.learning.course.detail
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.wesign.wesign.data.entity.Lesson
+import com.wesign.wesign.data.entity.LessonResponse
 import com.wesign.wesign.domain.Resource
 import com.wesign.wesign.domain.WeSignRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -22,6 +24,14 @@ class CourseDetailViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(CourseDetailState())
     val uiState: StateFlow<CourseDetailState> = _uiState.asStateFlow()
+
+    fun setLessonList(lesson: List<LessonResponse.Data>) {
+        _uiState.update {
+            it.copy(
+                lessonList = lesson
+            )
+        }
+    }
 
     fun getPercentageProgress() {
         val totalLesson = uiState.value.course.lessons.size

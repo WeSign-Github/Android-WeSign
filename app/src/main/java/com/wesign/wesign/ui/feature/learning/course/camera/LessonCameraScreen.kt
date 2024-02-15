@@ -16,6 +16,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,6 +37,8 @@ import com.wesign.wesign.utils.ObjectDetectorHelper
 import org.tensorflow.lite.task.vision.detector.Detection
 
 
+
+// TODO Lesson Completed state is not resetting after new lesson opened
 @Composable
 fun LessonCameraRoute(
     courseDetailViewModel: CourseDetailViewModel = hiltViewModel(),
@@ -61,6 +64,7 @@ fun LessonCameraScreen(
     lessonState: LessonState = LessonState(),
     courseDetailState: CourseDetailState = CourseDetailState(),
     onNavigateBack: () -> Unit = {},
+    onCompleteLesson: () -> Unit = {},
     onChallengeCorrect: () -> Unit = {},
 ) {
     val context = LocalContext.current
